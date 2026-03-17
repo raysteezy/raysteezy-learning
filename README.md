@@ -151,9 +151,17 @@ python scripts/pl_price_prediction_model.py
 python scripts/pl_monte_carlo_simulation.py
 ```
 
+## Disclaimer
+
+> **This repository is for educational and academic purposes only. Nothing herein constitutes financial advice, investment recommendations, or a solicitation to buy or sell any security.** All models, simulations, and predictions are statistical exercises based on historical data with significant limitations. Past performance does not guarantee future results. See [DISCLAIMER.md](DISCLAIMER.md) for full details.
+
+## Data Attribution
+
+Financial data sourced from [Yahoo Finance](https://finance.yahoo.com/) via [yfinance](https://github.com/ranaroussi/yfinance) (Apache 2.0). Yahoo!, Y!Finance, and Yahoo! Finance are registered trademarks of Yahoo, Inc. This repository is not affiliated with Yahoo. See [DATA_NOTICE.md](DATA_NOTICE.md) for usage terms and restrictions.
+
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+Source code is licensed under the [MIT License](LICENSE). Data files are subject to [Yahoo's Terms of Service](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html). See [DATA_NOTICE.md](DATA_NOTICE.md) for details.
 
 ## Security
 
