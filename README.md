@@ -63,7 +63,7 @@ My first attempt. I used basic regression with no proper validation. These model
 
 ---
 
-## V2 — Upgraded Models (Grade: Pending)
+## V2 — Upgraded Models (Grade: A-)
 
 After getting a C+ on V1, I rebuilt everything to fix all 7 issues. This section has everything you need to grade V2.
 
