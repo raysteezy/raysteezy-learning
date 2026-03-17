@@ -106,11 +106,11 @@ The V2 models are more pessimistic because they're more realistic about tail ris
 
 | Chart | What It Shows |
 |-------|--------------|
-| [V1 vs V2 Predictions](data/planet-labs/predictions/pl_price_prediction.png) | Full 5-year history + ARIMA forecast with confidence bands |
-| [Walk-Forward Dashboard](data/planet-labs/predictions/pl_model_dashboard.png) | ARIMA + Ridge validation, residuals, and model comparison table |
-| [Multi-Model Fan Chart](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) | GBM vs Heston vs Jump Diffusion with confidence intervals |
-| [HMM Stress Tests](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) | 5 scenarios from market crash to calm bull |
-| [Robustness Dashboard](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png) | Terminal distributions, bootstrap CIs, sensitivity heatmap, model comparison |
+| [Forecast](data/planet-labs/predictions/forecast.png) | V1 vs V2 prediction side-by-side |
+| [Dashboard](data/planet-labs/predictions/dashboard.png) | Walk-forward validation + scorecard |
+| [Fan Chart](data/planet-labs/predictions/monte-carlo/fan_chart.png) | GBM vs Heston vs Jump Diffusion |
+| [Stress Tests](data/planet-labs/predictions/monte-carlo/stress.png) | 5 HMM scenarios from crash to bull |
+| [Risk Analysis](data/planet-labs/predictions/monte-carlo/risk.png) | Distributions, sensitivity, risk comparison |
 
 ### V2 Files
 
@@ -120,8 +120,8 @@ The V2 models are more pessimistic because they're more realistic about tail ris
 | Monte Carlo simulation | [monte_carlo_v2.py](scripts/monte_carlo_v2.py) |
 | Prediction writeup | [predictions/README.md](data/planet-labs/predictions/README.md) |
 | Monte Carlo writeup | [monte-carlo/README.md](data/planet-labs/predictions/monte-carlo/README.md) |
-| Model results (JSON) | [model_summary.json](data/planet-labs/predictions/model_summary.json) |
-| MC results (JSON) | [monte_carlo_summary.json](data/planet-labs/predictions/monte-carlo/monte_carlo_summary.json) |
+| Model results | [results.json](data/planet-labs/predictions/results.json) |
+| MC results | [results.json](data/planet-labs/predictions/monte-carlo/results.json) |
 
 ---
 
@@ -134,24 +134,24 @@ raysteezy-learning/
 │       ├── quote.json                   #   Current stock price and key metrics
 │       ├── income_statement.csv         #   Quarterly income statements
 │       ├── balance_sheet.csv            #   Quarterly balance sheets
-│       ├── cash_flow.csv                #   Quarterly cash flow statements
+│       ├── cash_flow.csv               #   Quarterly cash flow statements
 │       ├── price_history.csv            #   Full daily OHLCV prices (since IPO)
-│       ├── README.md                    #   Data dictionary (what each field means)
+│       ├── README.md                    #   Data dictionary
 │       └── predictions/
 │           ├── README.md                #   V1 vs V2 model comparison
-│           ├── model_summary.json       #   V2 model results
-│           ├── predicted_prices.csv     #   V2 forecasts with confidence intervals
-│           ├── pl_price_prediction.png  #   V1 vs V2 prediction chart
-│           ├── pl_model_dashboard.png   #   Walk-forward validation dashboard
+│           ├── results.json             #   V2 model results
+│           ├── prices.csv               #   V2 forecasts with CIs
+│           ├── forecast.png             #   V1 vs V2 prediction chart
+│           ├── dashboard.png            #   Walk-forward validation dashboard
 │           └── monte-carlo/
-│               ├── README.md            #   MC V2 methodology (Heston + jumps)
-│               ├── monte_carlo_summary.json  #  Full V1 vs V2 MC comparison
-│               ├── mc_percentile_paths.csv   #  Heston percentile price paths
-│               ├── stress_test_paths.csv     #  HMM regime-based stress tests
-│               ├── sensitivity_analysis.csv  #  Parameter sensitivity grid
-│               ├── mc_fan_chart.png          #  Multi-model fan chart
-│               ├── stress_test_chart.png     #  HMM-based stress scenarios
-│               └── robustness_dashboard.png  #  V1 vs V2 robustness comparison
+│               ├── README.md            #   MC methodology
+│               ├── results.json         #   Full V1 vs V2 MC comparison
+│               ├── paths.csv            #   Heston percentile paths
+│               ├── stress_paths.csv     #   Stress scenario paths
+│               ├── sensitivity.csv      #   Parameter sensitivity grid
+│               ├── fan_chart.png        #   V1 vs V2 fan chart
+│               ├── stress.png           #   HMM stress scenarios
+│               └── risk.png             #   Risk analysis dashboard
 ├── scripts/
 │   ├── fetch_planet_labs_financials.py  # Grabs financial data from Yahoo Finance
 │   ├── prediction_v1.py                # V1 baseline (linear + polynomial)
