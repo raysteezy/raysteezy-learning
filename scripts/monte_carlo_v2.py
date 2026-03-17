@@ -638,10 +638,10 @@ fig.text(0.5, 0.01,
          "(Merton)  |  Not financial advice.",
          ha="center", fontsize=8, alpha=0.5)
 plt.tight_layout()
-fig.savefig("mc_fan_chart.png", dpi=150, bbox_inches="tight",
+fig.savefig("fan_chart.png", dpi=150, bbox_inches="tight",
             facecolor=fig.get_facecolor())
 plt.close()
-print("  Saved: mc_fan_chart.png")
+print("  Saved: fan_chart.png")
 
 
 # ── Chart 2: Stress Test Scenarios ──────────────────────────────────
@@ -683,10 +683,10 @@ fig2.text(0.5, 0.01,
           "Median paths per scenario. Log scale. Not financial advice.",
           ha="center", fontsize=8, alpha=0.5)
 plt.tight_layout()
-fig2.savefig("stress_test_chart.png", dpi=150, bbox_inches="tight",
+fig2.savefig("stress.png", dpi=150, bbox_inches="tight",
              facecolor=fig2.get_facecolor())
 plt.close()
-print("  Saved: stress_test_chart.png")
+print("  Saved: stress.png")
 
 
 # ── Chart 3: Robustness Dashboard (4-panel) ─────────────────────────
@@ -820,10 +820,10 @@ fig3.text(0.5, 0.01,
           f"Not financial advice.",
           ha="center", fontsize=8, alpha=0.5)
 plt.tight_layout(rect=[0, 0.02, 1, 0.96])
-fig3.savefig("robustness_dashboard.png", dpi=150, bbox_inches="tight",
+fig3.savefig("risk.png", dpi=150, bbox_inches="tight",
              facecolor=fig3.get_facecolor())
 plt.close()
-print("  Saved: robustness_dashboard.png")
+print("  Saved: risk.png")
 
 
 # =====================================================================
@@ -895,7 +895,7 @@ summary = {
     ),
 }
 
-with open("monte_carlo_summary.json", "w") as f:
+with open("results.json", "w") as f:
     json.dump(summary, f, indent=2)
 
 # Percentile paths CSV (Heston as primary model)
@@ -906,7 +906,7 @@ pct_df = pd.DataFrame(
     index=forecast_dates,
 )
 pct_df.index.name = "date"
-pct_df.to_csv("mc_percentile_paths.csv")
+pct_df.to_csv("paths.csv")
 
 # Stress test paths CSV
 st_rows = []
@@ -918,19 +918,19 @@ for key, res in stress_results.items():
             "scenario": res["name"],
             "median_price": round(float(median_p[i]), 4),
         })
-pd.DataFrame(st_rows).to_csv("stress_test_paths.csv", index=False)
+pd.DataFrame(st_rows).to_csv("stress_paths.csv", index=False)
 
 # Sensitivity CSV
-sens_df.to_csv("sensitivity_analysis.csv", index=False)
+sens_df.to_csv("sensitivity.csv", index=False)
 
 print("\nAll outputs saved:")
-print("   mc_fan_chart.png")
-print("   stress_test_chart.png")
-print("   robustness_dashboard.png")
-print("   monte_carlo_summary.json")
-print("   mc_percentile_paths.csv")
-print("   stress_test_paths.csv")
-print("   sensitivity_analysis.csv")
+print("   fan_chart.png")
+print("   stress.png")
+print("   risk.png")
+print("   results.json")
+print("   paths.csv")
+print("   stress_paths.csv")
+print("   sensitivity.csv")
 print(f"\nV1 GBM 2yr median:            ${np.median(v1_terminal):.2f}")
 print(f"V2 Heston 2yr median:         "
       f"${np.median(heston_terminal):.2f}")
