@@ -18,40 +18,99 @@
 
 This is my personal learning repo. I'm a first-year college student teaching myself Python, data pipelines, and machine learning by working with real stock market data. Nothing fancy — just me figuring things out and documenting what I learn along the way.
 
-The main project tracks Planet Labs (PL) stock data. I built a pipeline that grabs financial data every week, and I've been iterating on prediction models — starting with basic regression (v1, grade: C+), then upgrading to ARIMA, Ridge regression with features, stochastic volatility Monte Carlo, and jump diffusion (v2). Both versions are in the code so you can see the progression.
+The main project tracks Planet Labs (PL) stock data using ~5 years of daily price history (since their IPO in April 2021). I built a pipeline that grabs financial data every week, and I've been building prediction models in two rounds — V1 and V2. Both versions are in the repo so you can see the progression.
 
 All the data in this repo also gets synced to [Airweave](https://airweave.ai) for AI-powered search.
 
 ---
 
-## V2 Submission (Grade: Pending)
+## V1 — Baseline Models (Grade: C+)
 
-This section is here so everything from the v2 upgrade is easy to find in one place. V1 got a C+ — the stuff below is what I built to fix every issue from that grade.
+My first attempt. I used basic regression with no proper validation. These models taught me a lot about what NOT to do, so I'm keeping them in the code for reference.
+
+### V1 Price Prediction
+
+| Model | R² (Training) | Problem |
+|-------|--------------|---------|
+| Linear Regression | 0.029 | Underfits — barely explains anything |
+| Polynomial (deg-3) | 0.849 | Overfits — curves up forever past training data |
+
+### V1 Monte Carlo
+
+| Detail | Value |
+|--------|-------|
+| Model | Constant-vol Geometric Brownian Motion (GBM) |
+| Stress tests | Made-up multipliers (not based on real data) |
+| Validation | None |
+| 2-year median | $20.09 |
+| P(Profit) | 42.3% |
+
+### Why V1 Got a C+
+
+- R² was only computed on training data (no out-of-sample testing)
+- Only used the date as input — no volume, no returns, no fundamentals
+- No confidence intervals — just single-number predictions
+- Polynomial extrapolation goes to infinity past the training data
+- Monte Carlo used constant volatility (real stocks don't behave that way)
+- Stress scenarios were arbitrary multipliers, not grounded in data
+
+### V1 Files
+
+| What | File |
+|------|------|
+| Prediction code (v1 section) | [pl_price_prediction_model.py](scripts/pl_price_prediction_model.py) |
+| Monte Carlo code (v1 section) | [pl_monte_carlo_simulation.py](scripts/pl_monte_carlo_simulation.py) |
+
+---
+
+## V2 — Upgraded Models (Grade: Pending)
+
+After getting a C+ on V1, I rebuilt everything to fix all 7 issues. This section has everything you need to grade V2.
 
 ### What I Fixed
 
-| Problem from V1 | How V2 Addresses It | Where to Look |
-|-----------------|--------------------|--------------|
-| R² only on training data | Walk-forward validation on 63 unseen days | [Prediction README](data/planet-labs/predictions/README.md) |
-| Only used date as a feature | 10+ features (returns, vol, momentum, volume) | [pl_price_prediction_model.py](scripts/pl_price_prediction_model.py) |
-| No overfitting control | Ridge regularization + ARIMA with AIC | [pl_price_prediction_model.py](scripts/pl_price_prediction_model.py) |
-| No confidence intervals | Bootstrap prediction intervals on ARIMA | [predicted_prices.csv](data/planet-labs/predictions/predicted_prices.csv) |
-| Constant-vol Monte Carlo | Heston stochastic vol + Merton jump diffusion | [pl_monte_carlo_simulation.py](scripts/pl_monte_carlo_simulation.py) |
-| Made-up stress scenarios | HMM regime-switching (detected from real data) | [Monte Carlo README](data/planet-labs/predictions/monte-carlo/README.md) |
-| Single model, no comparison | 3 MC models side-by-side + v1 vs v2 tables | [monte_carlo_summary.json](data/planet-labs/predictions/monte-carlo/monte_carlo_summary.json) |
+| Problem from V1 | How V2 Fixes It |
+|-----------------|----------------|
+| R² only on training data | Walk-forward validation on 63 unseen trading days |
+| Only used date as a feature | 10+ features (lagged returns, volatility, momentum, volume, SMA crossovers) |
+| No overfitting control | Ridge regularization + ARIMA with AIC penalty |
+| No confidence intervals | Bootstrap prediction intervals (90% and 50% bands) |
+| Constant-vol Monte Carlo | Heston stochastic volatility + Merton jump diffusion |
+| Made-up stress scenarios | HMM regime-switching (2 regimes detected from real PL data) |
+| Single model, no comparison | 3 MC models side-by-side + v1 vs v2 comparison tables |
 
-### V2 Key Metrics
+### V2 Price Prediction Results
 
-| Model | Metric | Value |
-|-------|--------|-------|
-| ARIMA | Out-of-sample R² | ~0.84 |
-| Ridge + features | Out-of-sample R² | ~0.85 |
-| Ridge + features | Directional accuracy | ~48% |
-| Heston MC | 2-year median price | ~$16 |
-| Heston MC | P(Profit) | ~36% |
-| Jump Diffusion MC | 2-year median price | ~$16 |
-| Jump Diffusion MC | P(Profit) | ~37% |
-| HMM | Regimes detected | 2 (calm 85% / volatile 15%) |
+| Model | R² (Out-of-Sample) | MAE | RMSE | Directional Accuracy |
+|-------|-------------------|-----|------|---------------------|
+| ARIMA | 0.835 | $0.97 | $1.19 | 50.0% |
+| Ridge + features | 0.851 | $0.94 | $1.14 | 47.6% |
+
+The key difference: V1's polynomial R² of 0.85 was on training data (cheating). V2's R² of 0.85 is on data the model never saw (honest).
+
+**ARIMA 6-month forecast:** $24.60 — 90% CI: [$23.11, $28.51]
+
+### V2 Monte Carlo Results
+
+| Model | 2-Year Median | P(Profit) | P(Double) | VaR 95% |
+|-------|--------------|-----------|-----------|---------|
+| v1 GBM (baseline) | $20.09 | 42.3% | 20.1% | $3.52 |
+| v2 Heston | $15.51 | 35.6% | 18.6% | $1.83 |
+| v2 Jump Diffusion | $16.30 | 36.7% | 18.5% | $2.26 |
+
+The V2 models are more pessimistic because they're more realistic about tail risk and volatility clustering.
+
+**HMM Regime Detection:** Found 2 regimes in PL's history — Calm (85% of days, 46% annualized vol) and Volatile (15% of days, 131% annualized vol).
+
+### V2 Charts
+
+| Chart | What It Shows |
+|-------|--------------|
+| [v1 vs v2 Predictions](data/planet-labs/predictions/pl_price_prediction.png) | Full 5-year history + ARIMA forecast with confidence bands |
+| [Walk-Forward Dashboard](data/planet-labs/predictions/pl_model_dashboard.png) | ARIMA + Ridge validation, residuals, and model comparison table |
+| [Multi-Model Fan Chart](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) | GBM vs Heston vs Jump Diffusion with confidence intervals |
+| [HMM Stress Tests](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) | 5 scenarios from market crash to calm bull |
+| [Robustness Dashboard](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png) | Terminal distributions, bootstrap CIs, sensitivity heatmap, model comparison |
 
 ### V2 Files Quick Links
 
@@ -61,13 +120,8 @@ This section is here so everything from the v2 upgrade is easy to find in one pl
 | Monte Carlo code (v1 + v2) | [pl_monte_carlo_simulation.py](scripts/pl_monte_carlo_simulation.py) |
 | Prediction writeup | [predictions/README.md](data/planet-labs/predictions/README.md) |
 | Monte Carlo writeup | [monte-carlo/README.md](data/planet-labs/predictions/monte-carlo/README.md) |
-| v1 vs v2 prediction chart | [pl_price_prediction.png](data/planet-labs/predictions/pl_price_prediction.png) |
-| Walk-forward dashboard | [pl_model_dashboard.png](data/planet-labs/predictions/pl_model_dashboard.png) |
-| Multi-model fan chart | [mc_fan_chart.png](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) |
-| HMM stress test chart | [stress_test_chart.png](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) |
-| Robustness dashboard | [robustness_dashboard.png](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png) |
-| Full model results (JSON) | [model_summary.json](data/planet-labs/predictions/model_summary.json) |
-| Full MC results (JSON) | [monte_carlo_summary.json](data/planet-labs/predictions/monte-carlo/monte_carlo_summary.json) |
+| Model results (JSON) | [model_summary.json](data/planet-labs/predictions/model_summary.json) |
+| MC results (JSON) | [monte_carlo_summary.json](data/planet-labs/predictions/monte-carlo/monte_carlo_summary.json) |
 
 ---
 
@@ -111,9 +165,7 @@ raysteezy-learning/
 └── README.md                           # You are here
 ```
 
-## Projects
-
-### Planet Labs (NYSE: PL) — Weekly Data Feed
+## Planet Labs (NYSE: PL) — Weekly Data Feed
 
 I picked Planet Labs because they're a space company that's publicly traded, which I think is cool. The pipeline grabs their financial data once a week and saves it here so I can use it for analysis later.
 
@@ -134,67 +186,10 @@ I picked Planet Labs because they're a space company that's publicly traded, whi
 
 **Want to run it yourself?** Go to the [Actions tab](../../actions) → "Update Planet Labs Data" → "Run workflow"
 
----
-
-### Price Prediction Models
-
-#### V1 Baseline (Linear & Polynomial Regression)
-
-I started with basic regression to learn the fundamentals. These models taught me a lot about overfitting and the importance of proper validation, even though the predictions themselves are bad.
-
-| Model | R² (Training) | 6-Month Forecast | Problem |
-|-------|--------------|-----------------|---------|
-| Linear | 0.029 | ~$8 | Underfits — barely explains anything |
-| Polynomial (deg-3) | 0.849 | ~$37 | Overfits — curves up forever past training data |
-
-#### V2 Upgraded (ARIMA + Ridge)
-
-After getting a C+ grade on v1, I rebuilt with models that actually handle time-series data properly.
-
-| Model | R² (Out-of-Sample) | Validation | Key Improvement |
-|-------|-------------------|------------|-----------------|
-| ARIMA | ~0.84 | Walk-forward (63 days) | Handles autocorrelation, auto-selected parameters |
-| Ridge + features | ~0.85 | Walk-forward (63 days) | Uses 10+ features (returns, vol, momentum, volume) |
-
-The big difference: v1's R² was measured on training data (cheating). V2's R² is measured on data the model never saw (honest).
-
-📊 **Charts:** [v1 vs v2 Predictions](data/planet-labs/predictions/pl_price_prediction.png) · [Validation Dashboard](data/planet-labs/predictions/pl_model_dashboard.png)
-
-📖 **Full comparison:** [Predictions README](data/planet-labs/predictions/README.md)
-
-#### Monte Carlo Simulation (V2: Heston + Jump Diffusion + HMM)
-
-The Monte Carlo also got a major upgrade:
-
-| Feature | V1 | V2 |
-|---------|----|----|
-| Price model | Constant-vol GBM | GBM + Heston stochastic vol + Merton jump diffusion |
-| Stress tests | Made-up multipliers | HMM regime-switching (empirically detected) |
-| Walk-forward | GBM only | GBM vs Heston comparison |
-| Models compared | 1 | 3 (side-by-side) |
-
-**2-Year Comparison:**
-
-| Model | Median | P(Profit) |
-|-------|--------|-----------|
-| v1 GBM | ~$20 | ~42% |
-| v2 Heston | ~$16 | ~36% |
-| v2 Jump Diffusion | ~$16 | ~37% |
-
-The v2 models are more pessimistic because they're more realistic about tail risk and volatility clustering.
-
-📊 **Charts:** [Multi-Model Fan Chart](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) · [HMM Stress Tests](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) · [Robustness Dashboard](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png)
-
-📖 **Full methodology:** [Monte Carlo v2 README](data/planet-labs/predictions/monte-carlo/README.md)
-
-> ⚠️ **Disclaimer:** All predictions are educational simulations — not financial advice.
-
----
-
 ## Tools I Used
 
 | Tool | What I Used It For |
-|------|--------------------|
+|------|---------------------|
 | Python 3.11 | Everything — data collection, ML models, charts |
 | GitHub Actions | Automating the weekly data pulls |
 | Airweave | Syncing this repo for AI-powered search |
