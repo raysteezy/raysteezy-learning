@@ -20,10 +20,10 @@ The V1 baseline models (linear + polynomial) are in prediction_v1.py.
 I kept them separate so you can compare side by side.
 
 Outputs (saved to data/planet-labs/predictions/):
-  - model_summary.json         Full results for all V2 models
-  - predicted_prices.csv       Forecasts with confidence intervals
-  - pl_price_prediction.png    Main comparison chart (V1 vs V2)
-  - pl_model_dashboard.png     Multi-panel analysis dashboard
+  - results.json         Full results for all V2 models
+  - prices.csv       Forecasts with confidence intervals
+  - forecast.png    Main comparison chart (V1 vs V2)
+  - dashboard.png     Multi-panel analysis dashboard
 
 Disclaimer: Educational project only — not financial advice.
 """
@@ -548,7 +548,7 @@ def plot_main_chart(hist, v1_models, arima_ci, current_price, last_date):
              style="italic")
     plt.tight_layout(rect=[0, 0.03, 1, 1])
 
-    filepath = os.path.join(OUTPUT_DIR, "pl_price_prediction.png")
+    filepath = os.path.join(OUTPUT_DIR, "forecast.png")
     plt.savefig(filepath, dpi=150, bbox_inches="tight",
                 facecolor=COLORS["bg"])
     plt.close()
@@ -677,7 +677,7 @@ def plot_dashboard(hist, v1_models, arima_wf, ridge_wf,
              style="italic")
     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
 
-    filepath = os.path.join(OUTPUT_DIR, "pl_model_dashboard.png")
+    filepath = os.path.join(OUTPUT_DIR, "dashboard.png")
     plt.savefig(filepath, dpi=150, bbox_inches="tight",
                 facecolor=COLORS["bg"])
     plt.close()
@@ -770,7 +770,7 @@ def save_summary(hist, v1_models, arima_model, arima_wf, ridge_wf,
         "disclaimer": "Educational model only. Not financial advice.",
     }
 
-    filepath = os.path.join(OUTPUT_DIR, "model_summary.json")
+    filepath = os.path.join(OUTPUT_DIR, "results.json")
     with open(filepath, "w") as f:
         json.dump(summary, f, indent=2)
     print(f"  Saved: {filepath}")
@@ -795,7 +795,7 @@ def save_predictions_csv(arima_ci, last_date):
         ),
     })
 
-    filepath = os.path.join(OUTPUT_DIR, "predicted_prices.csv")
+    filepath = os.path.join(OUTPUT_DIR, "prices.csv")
     df.to_csv(filepath, index=False)
     print(f"  Saved: {filepath}")
 
