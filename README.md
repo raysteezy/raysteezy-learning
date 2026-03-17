@@ -18,9 +18,9 @@
 
 This is my personal learning repo. I'm a first-year college student teaching myself Python, data pipelines, and machine learning by working with real stock market data. Nothing fancy — just me figuring things out and documenting what I learn along the way.
 
-Right now the main project is tracking Planet Labs (PL) stock data. I built a pipeline that grabs financial data every week, and I've been experimenting with regression models and Monte Carlo simulations to see what I can learn about predicting stock prices (spoiler: it's really hard).
+The main project tracks Planet Labs (PL) stock data. I built a pipeline that grabs financial data every week, and I've been iterating on prediction models — starting with basic regression (v1, grade: C+), then upgrading to ARIMA, Ridge regression with features, stochastic volatility Monte Carlo, and jump diffusion (v2). Both versions are in the code so you can see the progression.
 
-All the data in this repo also gets synced to [Airweave](https://airweave.ai) so I can search through it with AI.
+All the data in this repo also gets synced to [Airweave](https://airweave.ai) for AI-powered search.
 
 ## Repo Structure
 
@@ -35,24 +35,24 @@ raysteezy-learning/
 │       ├── price_history.csv            #   1-year daily OHLCV prices
 │       ├── README.md                    #   Data dictionary (what each field means)
 │       └── predictions/
-│           ├── README.md                #   Explanation of the regression models
-│           ├── model_summary.json       #   Regression results
-│           ├── predicted_prices.csv     #   6-month forecast numbers
-│           ├── pl_price_prediction.png  #   Price prediction chart
-│           ├── pl_model_dashboard.png   #   4-panel model dashboard
+│           ├── README.md                #   v1 vs v2 model comparison
+│           ├── model_summary.json       #   All model results (v1 + v2)
+│           ├── predicted_prices.csv     #   Forecasts with confidence intervals
+│           ├── pl_price_prediction.png  #   v1 vs v2 prediction chart
+│           ├── pl_model_dashboard.png   #   Walk-forward validation dashboard
 │           └── monte-carlo/
-│               ├── README.md            #   How the Monte Carlo simulation works
-│               ├── monte_carlo_summary.json  #  All MC/stress/robustness results
-│               ├── mc_percentile_paths.csv   #  Percentile price paths (P5–P95)
-│               ├── stress_test_paths.csv     #  5 stress scenario median paths
+│               ├── README.md            #   MC v2 methodology (Heston + jumps)
+│               ├── monte_carlo_summary.json  #  Full v1 vs v2 MC comparison
+│               ├── mc_percentile_paths.csv   #  Heston percentile price paths
+│               ├── stress_test_paths.csv     #  HMM regime-based stress tests
 │               ├── sensitivity_analysis.csv  #  Parameter sensitivity grid
-│               ├── mc_fan_chart.png          #  Monte Carlo fan chart
-│               ├── stress_test_chart.png     #  Stress test comparison
-│               └── robustness_dashboard.png  #  4-panel robustness dashboard
+│               ├── mc_fan_chart.png          #  Multi-model fan chart
+│               ├── stress_test_chart.png     #  HMM-based stress scenarios
+│               └── robustness_dashboard.png  #  v1 vs v2 robustness comparison
 ├── scripts/
 │   ├── fetch_planet_labs_financials.py  # Grabs financial data from Yahoo Finance
-│   ├── pl_price_prediction_model.py    # Linear and polynomial regression
-│   └── pl_monte_carlo_simulation.py    # Monte Carlo simulation + stress testing
+│   ├── pl_price_prediction_model.py    # v1 + v2 regression models
+│   └── pl_monte_carlo_simulation.py    # v1 GBM + v2 Heston/jumps/HMM
 ├── .github/workflows/
 │   └── update-planet-labs-data.yml     # Runs the data collector every week
 ├── .gitignore
@@ -88,38 +88,54 @@ I picked Planet Labs because they're a space company that's publicly traded, whi
 
 ### Price Prediction Models
 
-#### Linear & Polynomial Regression
+#### V1 Baseline (Linear & Polynomial Regression)
 
-I tried fitting two basic regression models on the historical price data to forecast 6 months ahead. This was mostly a learning exercise to understand how regression works on time-series data.
+I started with basic regression to learn the fundamentals. These models taught me a lot about overfitting and the importance of proper validation, even though the predictions themselves are bad.
 
-| Model | R² (Training) | RMSE | 6-Month Forecast |
-|-------|--------------|------|-----------------|
-| Linear | 0.5568 | $4.47 | $25.64 |
-| Polynomial (degree 3) | 0.6897 | $3.74 | $28.88 |
+| Model | R² (Training) | 6-Month Forecast | Problem |
+|-------|--------------|-----------------|---------|
+| Linear | 0.029 | ~$8 | Underfits — barely explains anything |
+| Polynomial (deg-3) | 0.849 | ~$37 | Overfits — curves up forever past training data |
 
-The polynomial model fits the training data better, but polynomial extrapolation can go off the rails pretty quickly — I learned that the hard way.
+#### V2 Upgraded (ARIMA + Ridge)
 
-📊 **Charts:** [Price Prediction](data/planet-labs/predictions/pl_price_prediction.png) · [Model Dashboard](data/planet-labs/predictions/pl_model_dashboard.png)
+After getting a C+ grade on v1, I rebuilt with models that actually handle time-series data properly.
 
-#### Monte Carlo Simulation
+| Model | R² (Out-of-Sample) | Validation | Key Improvement |
+|-------|-------------------|------------|-----------------|
+| ARIMA | ~0.84 | Walk-forward (63 days) | Handles autocorrelation, auto-selected parameters |
+| Ridge + features | ~0.85 | Walk-forward (63 days) | Uses 10+ features (returns, vol, momentum, volume) |
 
-After the regression models, I wanted to try something more advanced. I built a Monte Carlo simulation using Geometric Brownian Motion (GBM) — basically running 10,000 random price paths based on PL's historical drift and volatility. I also added stress tests and robustness checks because I wanted to see how the model holds up under different conditions.
+The big difference: v1's R² was measured on training data (cheating). V2's R² is measured on data the model never saw (honest).
 
-| Horizon | Median Price | P5 (Worst Case) | P95 (Best Case) |
-|---------|-------------|-----------------|-----------------|
-| 6 Months | $23.38 | $9.65 | $54.65 |
-| 1 Year | $22.29 | $6.48 | $76.08 |
-| 2 Years | $20.10 | $3.52 | $117.12 |
+📊 **Charts:** [v1 vs v2 Predictions](data/planet-labs/predictions/pl_price_prediction.png) · [Validation Dashboard](data/planet-labs/predictions/pl_model_dashboard.png)
 
-**Risk numbers:** VaR 95% = $3.52 · CVaR 95% = $2.39 · P(Profit 2yr) = 42.3%
+📖 **Full comparison:** [Predictions README](data/planet-labs/predictions/README.md)
 
-**Stress tests:** Market Crash → $0.15 · Bear → $3.28 · Base → $20.14 · Bull → $49.26 · Extreme Bull → $31.44
+#### Monte Carlo Simulation (V2: Heston + Jump Diffusion + HMM)
 
-**Robustness checks:** Walk-forward validation, bootstrap confidence intervals, parameter sensitivity
+The Monte Carlo also got a major upgrade:
 
-📊 **Charts:** [Fan Chart](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) · [Stress Tests](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) · [Robustness Dashboard](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png)
+| Feature | V1 | V2 |
+|---------|----|----|
+| Price model | Constant-vol GBM | GBM + Heston stochastic vol + Merton jump diffusion |
+| Stress tests | Made-up multipliers | HMM regime-switching (empirically detected) |
+| Walk-forward | GBM only | GBM vs Heston comparison |
+| Models compared | 1 | 3 (side-by-side) |
 
-📖 **Full write-up:** [Monte Carlo README](data/planet-labs/predictions/monte-carlo/README.md)
+**2-Year Comparison:**
+
+| Model | Median | P(Profit) |
+|-------|--------|-----------|
+| v1 GBM | ~$20 | ~42% |
+| v2 Heston | ~$16 | ~36% |
+| v2 Jump Diffusion | ~$16 | ~37% |
+
+The v2 models are more pessimistic because they're more realistic about tail risk and volatility clustering.
+
+📊 **Charts:** [Multi-Model Fan Chart](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) · [HMM Stress Tests](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) · [Robustness Dashboard](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png)
+
+📖 **Full methodology:** [Monte Carlo v2 README](data/planet-labs/predictions/monte-carlo/README.md)
 
 > ⚠️ **Disclaimer:** All predictions are educational simulations — not financial advice.
 
@@ -133,9 +149,11 @@ After the regression models, I wanted to try something more advanced. I built a 
 | GitHub Actions | Automating the weekly data pulls |
 | Airweave | Syncing this repo for AI-powered search |
 | yfinance | Getting stock data from Yahoo Finance (free) |
-| NumPy / SciPy | Math for the Monte Carlo simulation |
+| NumPy / SciPy | Math for simulations and statistics |
 | Matplotlib | Making all the charts and dashboards |
-| scikit-learn | Linear and polynomial regression |
+| scikit-learn | Linear, polynomial, and Ridge regression |
+| pmdarima | Auto-ARIMA model selection |
+| hmmlearn | Hidden Markov Model for regime detection |
 
 ## How to Run This Yourself
 
@@ -145,15 +163,15 @@ git clone https://github.com/raysteezy/raysteezy-learning.git
 cd raysteezy-learning
 
 # Install the Python packages you need
-pip install yfinance pandas numpy scipy matplotlib scikit-learn
+pip install yfinance pandas numpy scipy matplotlib scikit-learn pmdarima hmmlearn
 
 # Run the data collector
 python scripts/fetch_planet_labs_financials.py
 
-# Run the regression models
+# Run the prediction models (v1 + v2)
 python scripts/pl_price_prediction_model.py
 
-# Run the Monte Carlo simulation
+# Run the Monte Carlo simulation (v1 + v2)
 python scripts/pl_monte_carlo_simulation.py
 ```
 
