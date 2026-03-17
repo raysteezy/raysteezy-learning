@@ -22,6 +22,55 @@ The main project tracks Planet Labs (PL) stock data. I built a pipeline that gra
 
 All the data in this repo also gets synced to [Airweave](https://airweave.ai) for AI-powered search.
 
+---
+
+## V2 Submission (Grade: Pending)
+
+This section is here so everything from the v2 upgrade is easy to find in one place. V1 got a C+ — the stuff below is what I built to fix every issue from that grade.
+
+### What I Fixed
+
+| Problem from V1 | How V2 Addresses It | Where to Look |
+|-----------------|--------------------|--------------|
+| R² only on training data | Walk-forward validation on 63 unseen days | [Prediction README](data/planet-labs/predictions/README.md) |
+| Only used date as a feature | 10+ features (returns, vol, momentum, volume) | [pl_price_prediction_model.py](scripts/pl_price_prediction_model.py) |
+| No overfitting control | Ridge regularization + ARIMA with AIC | [pl_price_prediction_model.py](scripts/pl_price_prediction_model.py) |
+| No confidence intervals | Bootstrap prediction intervals on ARIMA | [predicted_prices.csv](data/planet-labs/predictions/predicted_prices.csv) |
+| Constant-vol Monte Carlo | Heston stochastic vol + Merton jump diffusion | [pl_monte_carlo_simulation.py](scripts/pl_monte_carlo_simulation.py) |
+| Made-up stress scenarios | HMM regime-switching (detected from real data) | [Monte Carlo README](data/planet-labs/predictions/monte-carlo/README.md) |
+| Single model, no comparison | 3 MC models side-by-side + v1 vs v2 tables | [monte_carlo_summary.json](data/planet-labs/predictions/monte-carlo/monte_carlo_summary.json) |
+
+### V2 Key Metrics
+
+| Model | Metric | Value |
+|-------|--------|-------|
+| ARIMA | Out-of-sample R² | ~0.84 |
+| Ridge + features | Out-of-sample R² | ~0.85 |
+| Ridge + features | Directional accuracy | ~48% |
+| Heston MC | 2-year median price | ~$16 |
+| Heston MC | P(Profit) | ~36% |
+| Jump Diffusion MC | 2-year median price | ~$16 |
+| Jump Diffusion MC | P(Profit) | ~37% |
+| HMM | Regimes detected | 2 (calm 85% / volatile 15%) |
+
+### V2 Files Quick Links
+
+| What | File |
+|------|------|
+| Prediction code (v1 + v2) | [pl_price_prediction_model.py](scripts/pl_price_prediction_model.py) |
+| Monte Carlo code (v1 + v2) | [pl_monte_carlo_simulation.py](scripts/pl_monte_carlo_simulation.py) |
+| Prediction writeup | [predictions/README.md](data/planet-labs/predictions/README.md) |
+| Monte Carlo writeup | [monte-carlo/README.md](data/planet-labs/predictions/monte-carlo/README.md) |
+| v1 vs v2 prediction chart | [pl_price_prediction.png](data/planet-labs/predictions/pl_price_prediction.png) |
+| Walk-forward dashboard | [pl_model_dashboard.png](data/planet-labs/predictions/pl_model_dashboard.png) |
+| Multi-model fan chart | [mc_fan_chart.png](data/planet-labs/predictions/monte-carlo/mc_fan_chart.png) |
+| HMM stress test chart | [stress_test_chart.png](data/planet-labs/predictions/monte-carlo/stress_test_chart.png) |
+| Robustness dashboard | [robustness_dashboard.png](data/planet-labs/predictions/monte-carlo/robustness_dashboard.png) |
+| Full model results (JSON) | [model_summary.json](data/planet-labs/predictions/model_summary.json) |
+| Full MC results (JSON) | [monte_carlo_summary.json](data/planet-labs/predictions/monte-carlo/monte_carlo_summary.json) |
+
+---
+
 ## Repo Structure
 
 ```
