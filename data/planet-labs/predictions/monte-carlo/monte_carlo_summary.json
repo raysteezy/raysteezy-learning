@@ -1,0 +1,158 @@
+{
+  "ticker": "PL",
+  "company": "Planet Labs PBC",
+  "current_price": 24.6,
+  "generated_at": "2026-03-17 07:54:16 UTC",
+  "historical_parameters": {
+    "trading_days": 1228,
+    "date_range": "2021-04-26 to 2026-03-16",
+    "daily_drift_mu": 0.000742,
+    "daily_volatility_sigma": 0.047398,
+    "annualized_drift": 0.1869,
+    "annualized_volatility": 0.7524,
+    "log_return_skewness": 0.4861,
+    "log_return_kurtosis": 14.3291
+  },
+  "monte_carlo": {
+    "simulations": 10000,
+    "forecast_days": 504,
+    "method": "Geometric Brownian Motion (GBM)",
+    "equation": "S(t+dt) = S(t) * exp((\u03bc - \u03c3\u00b2/2)*dt + \u03c3*\u221adt*Z), Z ~ N(0,1)",
+    "statistics": {
+      "6_months": {
+        "mean": 26.72,
+        "median": 23.38,
+        "std": 14.94,
+        "min": 2.35,
+        "max": 172.54,
+        "p5": 9.65,
+        "p10": 11.77,
+        "p25": 16.23,
+        "p50": 23.38,
+        "p75": 33.53,
+        "p90": 45.61,
+        "p95": 54.65
+      },
+      "1_year": {
+        "mean": 29.4,
+        "median": 22.29,
+        "std": 25.03,
+        "min": 1.65,
+        "max": 364.27,
+        "p5": 6.48,
+        "p10": 8.42,
+        "p25": 13.39,
+        "p50": 22.29,
+        "p75": 36.94,
+        "p90": 58.32,
+        "p95": 76.08
+      },
+      "2_years": {
+        "mean": 35.63,
+        "median": 20.1,
+        "std": 50.58,
+        "min": 0.5,
+        "max": 868.33,
+        "p5": 3.52,
+        "p10": 5.29,
+        "p25": 9.93,
+        "p50": 20.1,
+        "p75": 41.48,
+        "p90": 79.04,
+        "p95": 117.12
+      }
+    },
+    "probabilities": {
+      "above_current_2yr": 42.3,
+      "double_2yr": 20.1,
+      "below_10_2yr": 25.2,
+      "above_50_2yr": 19.6
+    }
+  },
+  "stress_testing": {
+    "market_crash": {
+      "name": "Market Crash (2008-style)",
+      "description": "Severe market downturn \u2014 60% drop over 6 months, slow recovery",
+      "median_2yr": 0.15,
+      "p10_2yr": 0.0,
+      "p90_2yr": 3.96,
+      "prob_profit": 2.5,
+      "max_drawdown_median": -99.7
+    },
+    "bear_market": {
+      "name": "Prolonged Bear Market",
+      "description": "Extended downturn \u2014 negative sentiment, rising rates",
+      "median_2yr": 3.28,
+      "p10_2yr": 0.44,
+      "p90_2yr": 24.88,
+      "prob_profit": 10.1,
+      "max_drawdown_median": -91.5
+    },
+    "base_case": {
+      "name": "Base Case",
+      "description": "Historical drift and volatility continue",
+      "median_2yr": 20.14,
+      "p10_2yr": 5.11,
+      "p90_2yr": 78.74,
+      "prob_profit": 42.0,
+      "max_drawdown_median": -55.9
+    },
+    "bull_market": {
+      "name": "Strong Bull Market",
+      "description": "Accelerating growth \u2014 major contracts, positive sentiment",
+      "median_2yr": 49.26,
+      "p10_2yr": 16.69,
+      "p90_2yr": 139.47,
+      "prob_profit": 79.3,
+      "max_drawdown_median": -18.6
+    },
+    "extreme_bull": {
+      "name": "Extreme Bull (AI/Space Boom)",
+      "description": "Massive sector rotation into space/AI \u2014 parabolic move",
+      "median_2yr": 31.44,
+      "p10_2yr": 2.72,
+      "p90_2yr": 386.74,
+      "prob_profit": 55.3,
+      "max_drawdown_median": -63.5
+    }
+  },
+  "robustness": {
+    "walk_forward_validation": {
+      "63_day_lookback": {
+        "mean_error": -0.072,
+        "mae": 0.4462,
+        "rmse": 0.7415,
+        "n_tests": 18
+      },
+      "126_day_lookback": {
+        "mean_error": 0.0354,
+        "mae": 0.3303,
+        "rmse": 0.4509,
+        "n_tests": 17
+      },
+      "252_day_lookback": {
+        "mean_error": 0.1097,
+        "mae": 0.3023,
+        "rmse": 0.3874,
+        "n_tests": 15
+      }
+    },
+    "bootstrap_confidence_intervals": {
+      "mu_95_ci": [
+        -0.001974,
+        0.003458
+      ],
+      "sigma_95_ci": [
+        0.042347,
+        0.052779
+      ]
+    },
+    "value_at_risk": {
+      "var_95_2yr": 3.52,
+      "var_99_2yr": 1.7,
+      "cvar_95_2yr": 2.39,
+      "cvar_99_2yr": 1.24
+    }
+  },
+  "disclaimer": "Educational Monte Carlo simulation. Not financial advice. Past volatility and drift do not guarantee future results. The GBM model assumes log-normal returns and constant parameters, which may not hold in practice."
+}
