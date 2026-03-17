@@ -1,97 +1,75 @@
-# Planet Labs (PL) — Price Prediction Models
+# Price Predictions — Planet Labs (PL)
 
-> **Disclaimer:** This analysis is for educational and academic purposes only. It does not constitute financial or investment advice. See [LEGAL.md](../../../LEGAL.md) for full details.
-
-## What's In Here
-
-I started with simple linear and polynomial regression (V1), got a C+ grade on accuracy, and then rebuilt everything with better techniques (V2). Both versions live in separate files so you can see the progression.
+> **Not financial advice.** See [LEGAL.md](../../../LEGAL.md).
 
 ---
 
-## V1 Models (Baseline — Kept for Comparison)
+## V1 — Baseline (C+)
 
 **Script:** [`prediction_v1.py`](../../../scripts/prediction_v1.py)
 
-### Linear Regression
-- Draws a straight line through all historical prices
-- R² = 0.029 on training data (basically explains nothing)
-- Predicts PL will drop to ~$8 in 6 months, which doesn't make much sense
-- The problem: stock prices don't move in straight lines
+My first try. I used linear and polynomial regression with just the date as input. No validation, no intervals.
 
-### Polynomial Regression (Degree 3)
-- Fits a cubic curve instead of a line
-- R² = 0.849 on training data (looks great, but it's misleading)
-- Predicts $115+ after 2 years, which is way too aggressive
-- The problem: overfitting. The curve just keeps bending upward past the data
+| Model | R² (Train) | Issue |
+|-------|----------:|-------|
+| Linear | 0.029 | Barely explains anything |
+| Poly (deg-3) | 0.849 | Overfits — predicts $115+ in 2 years |
 
-### Why V1 Got a Bad Grade
-- R² was only computed on training data (no out-of-sample testing)
-- Only used the date as input — no volume, no returns, no fundamentals
-- No confidence intervals — just single-number predictions
-- Polynomial extrapolation is unreliable by nature
+**What went wrong:**
+- R² computed on training data only (no held-out test set)
+- Only feature was the date — no returns, volume, or momentum
+- No confidence intervals
+- Polynomial curves shoot to infinity past the data
 
 ---
 
-## V2 Models (Upgraded)
+## V2 — Upgraded (A-)
 
 **Script:** [`prediction_v2.py`](../../../scripts/prediction_v2.py)
 
-### ARIMA (Auto-Regressive Integrated Moving Average)
-- A proper time-series model that understands autocorrelation (today's price depends on yesterday's price)
-- Parameters auto-selected using AIC (penalizes complexity to avoid overfitting)
-- Walk-forward validated on 63 trading days of unseen data
+Rebuilt everything. Added proper time-series models, walk-forward validation, and multiple features.
+
+### ARIMA
+- Handles autocorrelation (today's price depends on yesterday's)
+- Auto-selected parameters via AIC
+- Validated on 63 unseen trading days
 - Includes 90% and 50% prediction intervals
-- **Out-of-sample R²: ~0.84** — and this is on data the model never saw during training
 
-### Ridge Regression with Features
-- Instead of just "date number" as input, I gave it:
-  - Lagged returns (1-day, 5-day, 21-day)
-  - Moving average crossovers (SMA 50 vs SMA 200)
-  - Realized volatility (21-day and 63-day)
-  - Volume trends
-  - Momentum indicators
-- Ridge adds a penalty term to prevent overfitting (unlike the polynomial model)
-- Walk-forward validated on the same 63-day test period
-- **Out-of-sample R²: ~0.85**
-- **Directional accuracy: ~48%** — predicting direction is harder than predicting level
+### Ridge Regression
+- 10+ features: lagged returns, SMA crossovers, volatility, volume, momentum
+- Regularization to prevent overfitting
+- Same 63-day walk-forward test
 
----
+| Model | R² (OOS) | MAE | RMSE |
+|-------|--------:|----:|-----:|
+| ARIMA | 0.835 | $0.97 | $1.19 |
+| Ridge | 0.851 | $0.94 | $1.14 |
 
-## V1 vs V2 Comparison
-
-| Metric | V1 Linear | V1 Polynomial | V2 ARIMA | V2 Ridge |
-|--------|-----------|---------------|----------|----------|
-| R² | 0.03 (train) | 0.85 (train) | ~0.84 (OOS) | ~0.85 (OOS) |
-| Validation | None | None | Walk-forward | Walk-forward |
-| Features | Date only | Date only | Price history | 10+ features |
-| Overfitting | Underfits | Severely overfits | Controlled | Regularized |
-| Confidence Intervals | No | No | Yes (bootstrap) | No |
-
-Key lesson: V1's polynomial R² of 0.85 looked impressive but was meaningless because it was tested on the same data it trained on. V2's R² of 0.85 is actually meaningful because it's measured on data the model never saw.
+**6-month forecast (ARIMA):** $24.60 — 90% CI [$23.11, $28.51]
 
 ---
 
-## What I Learned
+## Takeaways
 
-1. **Training R² is not the same as predictive R²** — you have to test on held-out data
-2. **Polynomial extrapolation is dangerous** — it fits the past beautifully but predicts nonsense
-3. **More features help** — Ridge with lagged returns and volume does better than ARIMA with price alone
-4. **Direction is harder than level** — both models get the rough price level right but only predict the direction about half the time. This makes sense — if it were easy to predict direction, everyone would be rich
-5. **Confidence intervals are essential** — a single number prediction is misleading. The interval tells you how uncertain the model is
+- V1's R² of 0.85 was on training data (cheating). V2's R² of 0.85 is on unseen data (honest).
+- More features help — Ridge with returns and volume beats ARIMA with price alone.
+- Predicting direction (~50%) is way harder than predicting level.
+- Always use confidence intervals — single-number predictions are misleading.
 
-For Monte Carlo simulation (a probabilistic approach), see [monte-carlo/](monte-carlo/).
+---
 
 ## Charts
 
-- `pl_price_prediction.png` — Side-by-side comparison of V1 and V2 forecasts with confidence intervals
-- `pl_model_dashboard.png` — 4-panel dashboard with walk-forward validation, residuals, and model comparison table
+| File | Shows |
+|------|-------|
+| `forecast.png` | V1 vs V2 side-by-side |
+| `dashboard.png` | Walk-forward validation + scorecard |
 
-## Important Disclaimer
+## Files
 
-These models are built for **educational purposes only**.
+| File | What |
+|------|------|
+| `results.json` | All model metrics |
+| `prices.csv` | V2 forecasts with CIs |
 
-**This is not financial advice.** Always do your own research before making investment decisions.
-
-## Data Source
-
-Historical prices from [Yahoo Finance](https://finance.yahoo.com/quote/PL/) via yfinance.
+*Data: [Yahoo Finance](https://finance.yahoo.com/quote/PL/) via yfinance*
