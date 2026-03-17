@@ -2,157 +2,277 @@
   "ticker": "PL",
   "company": "Planet Labs PBC",
   "current_price": 24.6,
-  "generated_at": "2026-03-17 07:54:16 UTC",
+  "generated_at": "2026-03-17 09:29:38 UTC",
+  "version": "v2 \u2014 stochastic vol + jump diffusion + regime switching",
   "historical_parameters": {
-    "trading_days": 1228,
-    "date_range": "2021-04-26 to 2026-03-16",
+    "trading_days": 1227,
+    "date_range": "2021-04-27 to 2026-03-16",
     "daily_drift_mu": 0.000742,
-    "daily_volatility_sigma": 0.047398,
+    "daily_volatility_sigma": 0.047418,
     "annualized_drift": 0.1869,
-    "annualized_volatility": 0.7524,
-    "log_return_skewness": 0.4861,
-    "log_return_kurtosis": 14.3291
+    "annualized_volatility": 0.7527,
+    "log_return_skewness": 0.4867,
+    "log_return_kurtosis": 14.3926
   },
-  "monte_carlo": {
-    "simulations": 10000,
-    "forecast_days": 504,
-    "method": "Geometric Brownian Motion (GBM)",
-    "equation": "S(t+dt) = S(t) * exp((\u03bc - \u03c3\u00b2/2)*dt + \u03c3*\u221adt*Z), Z ~ N(0,1)",
-    "statistics": {
+  "v2_heston_parameters": {
+    "kappa": 3.0,
+    "theta": 0.002248,
+    "v0": 0.001671,
+    "xi": 0.0669,
+    "rho": -0.1
+  },
+  "v2_jump_diffusion_parameters": {
+    "jump_intensity_per_year": 2.46,
+    "jump_mean": 0.0681,
+    "jump_std": 0.2712,
+    "jumps_detected": 12
+  },
+  "regime_detection": {
+    "calm": {
+      "mu_daily": 0.0007697575340251433,
+      "sigma_daily": 0.028699605099583036,
+      "frequency": 84.92257538712306,
+      "mu_annual": 0.1939788985743361,
+      "sigma_annual": 0.45559210691554697
+    },
+    "volatile": {
+      "mu_daily": 0.0006529218696868052,
+      "sigma_daily": 0.08271827177672438,
+      "frequency": 15.077424612876936,
+      "mu_annual": 0.16453631116107492,
+      "sigma_annual": 1.313111856013594
+    }
+  },
+  "model_comparison": {
+    "v1_gbm": {
       "6_months": {
+        "median": 23.37,
         "mean": 26.72,
-        "median": 23.38,
-        "std": 14.94,
-        "min": 2.35,
-        "max": 172.54,
-        "p5": 9.65,
-        "p10": 11.77,
+        "p5": 9.64,
         "p25": 16.23,
-        "p50": 23.38,
-        "p75": 33.53,
-        "p90": 45.61,
-        "p95": 54.65
+        "p75": 33.54,
+        "p95": 54.66
       },
       "1_year": {
-        "mean": 29.4,
         "median": 22.29,
-        "std": 25.03,
-        "min": 1.65,
-        "max": 364.27,
+        "mean": 29.4,
         "p5": 6.48,
-        "p10": 8.42,
         "p25": 13.39,
-        "p50": 22.29,
         "p75": 36.94,
-        "p90": 58.32,
-        "p95": 76.08
+        "p95": 76.1
       },
       "2_years": {
+        "median": 20.09,
         "mean": 35.63,
-        "median": 20.1,
-        "std": 50.58,
-        "min": 0.5,
-        "max": 868.33,
         "p5": 3.52,
-        "p10": 5.29,
-        "p25": 9.93,
-        "p50": 20.1,
-        "p75": 41.48,
-        "p90": 79.04,
-        "p95": 117.12
+        "p25": 9.92,
+        "p75": 41.47,
+        "p95": 117.15
       }
     },
-    "probabilities": {
-      "above_current_2yr": 42.3,
-      "double_2yr": 20.1,
-      "below_10_2yr": 25.2,
-      "above_50_2yr": 19.6
+    "v2_heston": {
+      "6_months": {
+        "median": 21.83,
+        "mean": 27.14,
+        "p5": 7.67,
+        "p25": 14.11,
+        "p75": 33.7,
+        "p95": 64.65
+      },
+      "1_year": {
+        "median": 19.22,
+        "mean": 29.89,
+        "p5": 4.26,
+        "p25": 10.5,
+        "p75": 36.74,
+        "p95": 89.57
+      },
+      "2_years": {
+        "median": 15.51,
+        "mean": 36.95,
+        "p5": 1.83,
+        "p25": 6.24,
+        "p75": 36.81,
+        "p95": 134.72
+      }
+    },
+    "v2_jump_diffusion": {
+      "6_months": {
+        "median": 22.16,
+        "mean": 26.9,
+        "p5": 8.22,
+        "p25": 14.51,
+        "p75": 33.76,
+        "p95": 60.77
+      },
+      "1_year": {
+        "median": 20.09,
+        "mean": 29.4,
+        "p5": 4.94,
+        "p25": 11.22,
+        "p75": 35.74,
+        "p95": 84.72
+      },
+      "2_years": {
+        "median": 16.3,
+        "mean": 34.6,
+        "p5": 2.26,
+        "p25": 7.08,
+        "p75": 36.68,
+        "p95": 122.18
+      }
+    }
+  },
+  "risk_metrics": {
+    "v1_gbm": {
+      "var_95": 3.52,
+      "var_99": 1.7,
+      "cvar_95": 2.4,
+      "cvar_99": 1.25,
+      "prob_profit": 42.3,
+      "prob_double": 20.1,
+      "prob_below_10": 25.2
+    },
+    "v2_heston": {
+      "var_95": 1.83,
+      "var_99": 0.73,
+      "cvar_95": 1.16,
+      "cvar_99": 0.49,
+      "prob_profit": 35.6,
+      "prob_double": 18.6,
+      "prob_below_10": 37.0
+    },
+    "v2_jump_diffusion": {
+      "var_95": 2.26,
+      "var_99": 1.03,
+      "cvar_95": 1.5,
+      "cvar_99": 0.7,
+      "prob_profit": 36.7,
+      "prob_double": 18.5,
+      "prob_below_10": 34.8
     }
   },
   "stress_testing": {
     "market_crash": {
       "name": "Market Crash (2008-style)",
-      "description": "Severe market downturn \u2014 60% drop over 6 months, slow recovery",
-      "median_2yr": 0.15,
+      "description": "Extreme volatile regime with forced negative drift",
+      "source": "HMM volatile regime, amplified",
+      "mu_daily": -0.001959,
+      "sigma_daily": 0.165437,
+      "median_2yr": 0.01,
       "p10_2yr": 0.0,
-      "p90_2yr": 3.96,
-      "prob_profit": 2.5,
-      "max_drawdown_median": -99.7
+      "p90_2yr": 1.06,
+      "prob_profit": 1.5,
+      "max_drawdown_median": -100.0
     },
     "bear_market": {
       "name": "Prolonged Bear Market",
-      "description": "Extended downturn \u2014 negative sentiment, rising rates",
-      "median_2yr": 3.28,
-      "p10_2yr": 0.44,
-      "p90_2yr": 24.88,
-      "prob_profit": 10.1,
-      "max_drawdown_median": -91.5
+      "description": "Volatile regime continues with negative drift",
+      "source": "HMM volatile regime, slightly amplified",
+      "mu_daily": -0.000653,
+      "sigma_daily": 0.107534,
+      "median_2yr": 0.96,
+      "p10_2yr": 0.04,
+      "p90_2yr": 20.3,
+      "prob_profit": 8.6,
+      "max_drawdown_median": -96.1
     },
     "base_case": {
-      "name": "Base Case",
-      "description": "Historical drift and volatility continue",
-      "median_2yr": 20.14,
+      "name": "Base Case (Historical)",
+      "description": "Blend of both regimes weighted by their frequency",
+      "source": "Full historical parameters",
+      "mu_daily": 0.000742,
+      "sigma_daily": 0.047418,
+      "median_2yr": 20.24,
       "p10_2yr": 5.11,
-      "p90_2yr": 78.74,
-      "prob_profit": 42.0,
-      "max_drawdown_median": -55.9
+      "p90_2yr": 80.47,
+      "prob_profit": 43.4,
+      "max_drawdown_median": -17.7
     },
-    "bull_market": {
-      "name": "Strong Bull Market",
-      "description": "Accelerating growth \u2014 major contracts, positive sentiment",
-      "median_2yr": 49.26,
-      "p10_2yr": 16.69,
-      "p90_2yr": 139.47,
-      "prob_profit": 79.3,
-      "max_drawdown_median": -18.6
+    "calm_bull": {
+      "name": "Calm Bull Market",
+      "description": "Calm regime dominates with positive drift",
+      "source": "HMM calm regime",
+      "mu_daily": 0.00077,
+      "sigma_daily": 0.0287,
+      "median_2yr": 29.39,
+      "p10_2yr": 12.7,
+      "p90_2yr": 67.2,
+      "prob_profit": 60.7,
+      "max_drawdown_median": -0.6
     },
-    "extreme_bull": {
-      "name": "Extreme Bull (AI/Space Boom)",
-      "description": "Massive sector rotation into space/AI \u2014 parabolic move",
-      "median_2yr": 31.44,
-      "p10_2yr": 2.72,
-      "p90_2yr": 386.74,
-      "prob_profit": 55.3,
-      "max_drawdown_median": -63.5
+    "volatile_bull": {
+      "name": "Volatile Bull (Sector Boom)",
+      "description": "Strong positive drift but wild swings",
+      "source": "HMM calm drift amplified, volatile vol amplified",
+      "mu_daily": 0.002309,
+      "sigma_daily": 0.124077,
+      "median_2yr": 1.59,
+      "p10_2yr": 0.05,
+      "p90_2yr": 55.59,
+      "prob_profit": 15.9,
+      "max_drawdown_median": -93.5
     }
   },
   "robustness": {
     "walk_forward_validation": {
       "63_day_lookback": {
-        "mean_error": -0.072,
-        "mae": 0.4462,
-        "rmse": 0.7415,
-        "n_tests": 18
+        "gbm": {
+          "mean_error": 0.0552,
+          "mae": 0.1718,
+          "rmse": 0.2309
+        },
+        "heston": {
+          "mean_error": 0.0552,
+          "mae": 0.1725,
+          "rmse": 0.2313
+        },
+        "n_tests": 19
       },
       "126_day_lookback": {
-        "mean_error": 0.0354,
-        "mae": 0.3303,
-        "rmse": 0.4509,
-        "n_tests": 17
+        "gbm": {
+          "mean_error": 0.0633,
+          "mae": 0.1563,
+          "rmse": 0.1938
+        },
+        "heston": {
+          "mean_error": 0.0632,
+          "mae": 0.1571,
+          "rmse": 0.1946
+        },
+        "n_tests": 18
       },
       "252_day_lookback": {
-        "mean_error": 0.1097,
-        "mae": 0.3023,
-        "rmse": 0.3874,
-        "n_tests": 15
+        "gbm": {
+          "mean_error": 0.0811,
+          "mae": 0.1454,
+          "rmse": 0.1906
+        },
+        "heston": {
+          "mean_error": 0.081,
+          "mae": 0.146,
+          "rmse": 0.1911
+        },
+        "n_tests": 16
       }
     },
     "bootstrap_confidence_intervals": {
       "mu_95_ci": [
-        -0.001974,
-        0.003458
+        -0.474086,
+        0.863141
       ],
       "sigma_95_ci": [
-        0.042347,
-        0.052779
+        0.67005,
+        0.840226
       ]
-    },
-    "value_at_risk": {
-      "var_95_2yr": 3.52,
-      "var_99_2yr": 1.7,
-      "cvar_95_2yr": 2.39,
-      "cvar_99_2yr": 1.24
     }
   },
-  "disclaimer": "Educational Monte Carlo simulation. Not financial advice. Past volatility and drift do not guarantee future results. The GBM model assumes log-normal returns and constant parameters, which may not hold in practice."
+  "improvements_over_v1": [
+    "Stochastic volatility (Heston) \u2014 vol is now random and mean-reverting",
+    "Jump diffusion (Merton) \u2014 models sudden crashes and spikes",
+    "HMM regime detection \u2014 stress tests based on real market regimes",
+    "Walk-forward compares GBM vs Heston head-to-head",
+    "Multi-model comparison table for risk metrics"
+  ],
+  "disclaimer": "Educational Monte Carlo simulation. Not financial advice. Past volatility and drift do not guarantee future results. Models assume specific parametric forms that may not hold in practice."
 }
