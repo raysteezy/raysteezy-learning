@@ -1,6 +1,6 @@
 # Legal
 
-Everything legal for this project in one place. This file consolidates [DISCLAIMER.md](DISCLAIMER.md), [DATA_NOTICE.md](DATA_NOTICE.md), [SECURITY.md](SECURITY.md), and the [MIT License](LICENSE) so you don't have to hunt through multiple files.
+Everything legal for this project in one place — disclaimer, data attribution, security policy, and the MIT license — so you don't have to hunt through multiple files.
 
 ---
 
