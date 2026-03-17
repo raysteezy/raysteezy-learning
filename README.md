@@ -81,7 +81,7 @@ raysteezy-learning/
 │       ├── income_statement.csv         #   Quarterly income statements
 │       ├── balance_sheet.csv            #   Quarterly balance sheets
 │       ├── cash_flow.csv                #   Quarterly cash flow statements
-│       ├── price_history.csv            #   1-year daily OHLCV prices
+│       ├── price_history.csv            #   Full daily OHLCV prices (since IPO)
 │       ├── README.md                    #   Data dictionary (what each field means)
 │       └── predictions/
 │           ├── README.md                #   v1 vs v2 model comparison
@@ -123,7 +123,7 @@ I picked Planet Labs because they're a space company that's publicly traded, whi
 | [Income Statement](data/planet-labs/income_statement.csv) | CSV | Weekly | Revenue, gross profit, operating income, EPS |
 | [Balance Sheet](data/planet-labs/balance_sheet.csv) | CSV | Weekly | Assets, liabilities, equity, cash, debt |
 | [Cash Flow](data/planet-labs/cash_flow.csv) | CSV | Weekly | Operating, investing, financing cash flows |
-| [Price History](data/planet-labs/price_history.csv) | CSV | Weekly | 1 year of daily open/high/low/close/volume |
+| [Price History](data/planet-labs/price_history.csv) | CSV | Weekly | Full daily open/high/low/close/volume (since IPO) |
 
 **How the pipeline works:**
 
