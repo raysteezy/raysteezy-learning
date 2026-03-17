@@ -2,53 +2,89 @@
 
 > **Disclaimer:** This analysis is for educational and academic purposes only. It does not constitute financial or investment advice. See [DISCLAIMER.md](../../../DISCLAIMER.md) for full details.
 
+## What's In Here
 
-## What I Did
+I started with simple linear and polynomial regression (v1), got a C+ grade on accuracy, and then rebuilt everything with better techniques (v2). Both versions are still in the code so you can see the progression.
 
-I tried two regression models on PL's historical stock prices to see if I could forecast the price 6 months, 1 year, and 2 years out. This was my first real attempt at machine learning on financial data, so I kept it simple.
+---
+
+## V1 Models (Baseline — Kept for Comparison)
 
 ### Linear Regression
-- Draws a straight line through all the historical prices
-- R² = 0.029 (pretty bad — the price doesn't move in a straight line)
-- Gives a very conservative prediction
-- I used this mostly as a baseline to compare against
+- Draws a straight line through all historical prices
+- R² = 0.029 on training data (basically explains nothing)
+- Predicts PL will drop to ~$8 in 6 months, which doesn't make much sense
+- The problem: stock prices don't move in straight lines
 
 ### Polynomial Regression (Degree 3)
-- Fits a curve (cubic polynomial) instead of a straight line
-- R² = 0.849 (much better fit on the training data)
-- Captures the recent upward trend in the price
-- But I learned that polynomials can predict crazy numbers once you go past the training data — they just keep curving up or down forever
+- Fits a cubic curve instead of a line
+- R² = 0.849 on training data (looks great, but it's misleading)
+- Predicts $115+ after 2 years, which is way too aggressive
+- The problem: overfitting. The curve just keeps bending upward past the data
 
-## Prediction Results (starting from $24.60)
+### Why V1 Got a Bad Grade
+- R² was only computed on training data (no out-of-sample testing)
+- Only used the date as input — no volume, no returns, no fundamentals
+- No confidence intervals — just single-number predictions
+- Polynomial extrapolation is unreliable by nature
 
-| Timeframe | Linear | Polynomial |
-|-----------|--------|------------|
-| 6 months  | $8.06  | $37.17     |
-| 1 year    | $8.36  | $57.15     |
-| 2 years   | $8.97  | $115.49    |
+---
 
-You can see the problem — the linear model says the price is going down, and the polynomial says it's going to the moon. The truth is probably somewhere in between, and neither model really "knows" what will happen.
+## V2 Models (Upgraded)
+
+### ARIMA (Auto-Regressive Integrated Moving Average)
+- A proper time-series model that understands autocorrelation (today's price depends on yesterday's price)
+- Parameters auto-selected using AIC (penalizes complexity to avoid overfitting)
+- Walk-forward validated on 63 trading days of unseen data
+- Includes 90% and 50% prediction intervals
+- **Out-of-sample R²: ~0.84** — and this is on data the model never saw during training
+
+### Ridge Regression with Features
+- Instead of just "date number" as input, I gave it:
+  - Lagged returns (1-day, 5-day, 21-day)
+  - Moving average crossovers (SMA 50 vs SMA 200)
+  - Realized volatility (21-day and 63-day)
+  - Volume trends
+  - Momentum indicators
+- Ridge adds a penalty term to prevent overfitting (unlike the polynomial model)
+- Walk-forward validated on the same 63-day test period
+- **Out-of-sample R²: ~0.85**
+- **Directional accuracy: ~48%** — predicting direction is harder than predicting level
+
+---
+
+## V1 vs V2 Comparison
+
+| Metric | v1 Linear | v1 Polynomial | v2 ARIMA | v2 Ridge |
+|--------|-----------|---------------|----------|----------|
+| R² | 0.03 (train) | 0.85 (train) | ~0.84 (OOS) | ~0.85 (OOS) |
+| Validation | None | None | Walk-forward | Walk-forward |
+| Features | Date only | Date only | Price history | 10+ features |
+| Overfitting | Underfits | Severely overfits | Controlled | Regularized |
+| Confidence Intervals | No | No | Yes (bootstrap) | No |
+
+Key lesson: v1's polynomial R² of 0.85 looked impressive but was meaningless because it was tested on the same data it trained on. v2's R² of 0.85 is actually meaningful because it's measured on data the model never saw.
+
+---
+
+## What I Learned
+
+1. **Training R² is not the same as predictive R²** — you have to test on held-out data
+2. **Polynomial extrapolation is dangerous** — it fits the past beautifully but predicts nonsense
+3. **More features help** — Ridge with lagged returns and volume does better than ARIMA with price alone
+4. **Direction is harder than level** — both models get the rough price level right but only predict the direction about half the time. This makes sense — if it were easy to predict direction, everyone would be rich
+5. **Confidence intervals are essential** — a single number prediction is misleading. The interval tells you how uncertain the model is
+
+For Monte Carlo simulation (a probabilistic approach), see [monte-carlo/](monte-carlo/).
 
 ## Charts
 
-- `pl_price_prediction.png` — Main chart showing historical data and the 2-year forecasts from both models
-- `pl_model_dashboard.png` — 4-panel dashboard with model fits, residuals, forecasts, and a summary table
-
-## What These Models Don't Know About
-
-These are simple curve-fitting models. They have no idea about:
-
-- Earnings surprises or changes in the business
-- Interest rates, inflation, or the economy
-- Competitors or new regulations
-- Whether people are feeling bullish or bearish
-- Planet Labs' actual business metrics (contracts, satellite launches, revenue growth)
-
-I built these to learn how regression works, not to actually predict the stock price. For a more advanced approach, check out the [Monte Carlo simulation](monte-carlo/).
+- `pl_price_prediction.png` — Side-by-side comparison of v1 and v2 forecasts with confidence intervals
+- `pl_model_dashboard.png` — 4-panel dashboard with walk-forward validation, residuals, and model comparison table
 
 ## Important Disclaimer
 
-These are simple trend-extrapolation models built for **educational purposes only**.
+These models are built for **educational purposes only**.
 
 **This is not financial advice.** Always do your own research before making investment decisions.
 
