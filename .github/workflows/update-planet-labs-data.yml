@@ -23,13 +23,23 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install yfinance pandas numpy scikit-learn matplotlib
+        run: |
+          pip install yfinance pandas numpy scipy matplotlib scikit-learn pmdarima hmmlearn
 
       - name: Fetch Planet Labs financial data
         run: python scripts/fetch_planet_labs_financials.py
 
-      - name: Run price prediction model
-        run: python scripts/pl_price_prediction_model.py
+      - name: Run V1 price prediction
+        run: python scripts/prediction_v1.py
+
+      - name: Run V2 price prediction
+        run: python scripts/prediction_v2.py
+
+      - name: Run V1 Monte Carlo simulation
+        run: python scripts/monte_carlo_v1.py
+
+      - name: Run V2 Monte Carlo simulation
+        run: python scripts/monte_carlo_v2.py
 
       - name: Commit and push updated data
         run: |
