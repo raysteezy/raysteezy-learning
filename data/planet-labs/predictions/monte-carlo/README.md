@@ -1,10 +1,10 @@
-# Monte Carlo Simulation — Planet Labs (PL) — v2
+# Monte Carlo Simulation — Planet Labs (PL)
 
-> **Disclaimer:** This simulation is for educational and academic purposes only. It does not constitute financial or investment advice. Past performance does not guarantee future results. See [DISCLAIMER.md](../../../../DISCLAIMER.md) for full details.
+> **Disclaimer:** This simulation is for educational and academic purposes only. It does not constitute financial or investment advice. Past performance does not guarantee future results. See [LEGAL.md](../../../../LEGAL.md) for full details.
 
 ## What Changed from V1
 
-The original Monte Carlo (v1) used constant drift and volatility (basic GBM). It worked as a starting point, but real stock prices have:
+The original Monte Carlo (V1) used constant drift and volatility (basic GBM). It worked as a starting point, but real stock prices have:
 - **Volatility clustering** — calm periods followed by wild periods
 - **Sudden jumps** — earnings surprises, crashes, news events
 - **Regime changes** — the market behaves differently in bull vs bear modes
@@ -16,12 +16,18 @@ V2 adds three new model types to address all of this.
 ## The Models
 
 ### V1 Baseline: Standard GBM (Geometric Brownian Motion)
+
+**Script:** [`monte_carlo_v1.py`](../../../../scripts/monte_carlo_v1.py)
+
 - `S(t+dt) = S(t) × exp((μ − σ²/2)·dt + σ·√dt·Z)`
 - Constant drift μ and volatility σ
 - 10,000 paths, 504 trading days (~2 years)
 - Good for learning, but the constant-vol assumption is wrong for real markets
 
 ### V2: Heston Stochastic Volatility
+
+**Script:** [`monte_carlo_v2.py`](../../../../scripts/monte_carlo_v2.py)
+
 - Volatility is no longer fixed — it's a random process that mean-reverts
 - When volatility is high, it tends to come back down (and vice versa)
 - Captures the "leverage effect" — price drops often come with volatility spikes
@@ -39,7 +45,7 @@ V2 adds three new model types to address all of this.
 - Uses a Hidden Markov Model to automatically detect market regimes from PL's history
 - Found 2 regimes: **Calm** (~85% of days, ~46% vol) and **Volatile** (~15% of days, ~131% vol)
 - Stress-test scenarios are now based on these real regimes instead of made-up multipliers
-- Much more empirically grounded than v1's static multiplier approach
+- Much more empirically grounded than V1's static multiplier approach
 
 ---
 
@@ -69,13 +75,13 @@ V2 adds three new model types to address all of this.
 | P(Double) | ~20% | — | — |
 | VaR 95% | ~$4 | — | — |
 
-The v2 models generally give more conservative medians because stochastic volatility and jumps both increase the variance-drain effect. The P(Profit) drops because the models are more realistic about downside risk.
+The V2 models generally give more conservative medians because stochastic volatility and jumps both increase the variance-drain effect. The P(Profit) drops because the models are more realistic about downside risk.
 
 ---
 
 ## Stress Test Scenarios (HMM-Based)
 
-Instead of using arbitrary multipliers like v1 did, v2 uses a Hidden Markov Model to detect the actual market regimes in PL's price history, then builds stress tests from those real parameters.
+Instead of using arbitrary multipliers like V1 did, V2 uses a Hidden Markov Model to detect the actual market regimes in PL's price history, then builds stress tests from those real parameters.
 
 | Scenario | Source | Description |
 |----------|--------|-------------|
@@ -104,7 +110,7 @@ The Heston model doesn't dramatically beat GBM in 21-day-ahead walk-forward test
 - σ 95% CI: more stable — volatility estimate is more reliable
 
 ### Parameter Sensitivity
-Same grid as v1 — higher volatility consistently reduces median outcomes due to the variance drain effect (−σ²/2 term).
+Same grid as V1 — higher volatility consistently reduces median outcomes due to the variance drain effect (−σ²/2 term).
 
 ---
 
@@ -122,12 +128,13 @@ Same grid as v1 — higher volatility consistently reduces median outcomes due t
 
 | File | What It Is |
 |------|-----------|
-| `pl_monte_carlo_simulation.py` | Full v2 simulation script (all three models) |
-| `monte_carlo_summary.json` | Complete results including v1 vs v2 comparison |
+| [`monte_carlo_v1.py`](../../../../scripts/monte_carlo_v1.py) | V1 baseline GBM simulation |
+| [`monte_carlo_v2.py`](../../../../scripts/monte_carlo_v2.py) | V2 full simulation (Heston + jumps + HMM) |
+| `monte_carlo_summary.json` | Complete results including V1 vs V2 comparison |
 | `mc_percentile_paths.csv` | Percentile paths from the Heston model |
 | `stress_test_paths.csv` | Median paths for each HMM-based stress scenario |
 | `sensitivity_analysis.csv` | Parameter sensitivity grid |
-| `mc_fan_chart.png` | Fan chart comparing v1 GBM vs v2 Heston + Jump Diffusion |
+| `mc_fan_chart.png` | Fan chart comparing V1 GBM vs V2 Heston + Jump Diffusion |
 | `stress_test_chart.png` | HMM-based stress test scenarios |
 | `robustness_dashboard.png` | 4-panel dashboard with distributions, bootstrap, sensitivity, comparison |
 
@@ -137,11 +144,16 @@ Same grid as v1 — higher volatility consistently reduces median outcomes due t
 
 ```bash
 pip install numpy pandas yfinance matplotlib scipy hmmlearn
-python pl_monte_carlo_simulation.py
+
+# V1 baseline
+python scripts/monte_carlo_v1.py
+
+# V2 upgraded
+python scripts/monte_carlo_v2.py
 ```
 
 Seed is set to 42 for reproducibility.
 
 ---
 
-*Generated on 2026-03-17 | Data source: Yahoo Finance via yfinance*
+*Data source: Yahoo Finance via yfinance*
