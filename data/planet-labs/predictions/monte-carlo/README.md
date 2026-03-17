@@ -2,7 +2,7 @@
 
 > **Geometric Brownian Motion (GBM) with 10,000 simulation paths, 5 stress-test scenarios, and full robustness analysis.**
 
-⚠️ **Disclaimer:** Educational simulation only — not financial advice. Past volatility and drift do not guarantee future results.
+**Disclaimer:** Educational simulation only — not financial advice. Past volatility and drift do not guarantee future results.
 
 ---
 
