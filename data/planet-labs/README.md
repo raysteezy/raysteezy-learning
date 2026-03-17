@@ -83,7 +83,7 @@ A snapshot of Planet Labs stock data and fundamental metrics. This gets overwrit
 | Capital Expenditure | Money spent on equipment, satellites, infrastructure |
 | Free Cash Flow | Operating cash flow minus capex — cash the company has "left over" |
 
-### `price_history.csv` — Daily Stock Prices (1 Year)
+### `price_history.csv` — Daily Stock Prices (Full History Since IPO)
 
 | Column | What It Means |
 |--------|--------------|
