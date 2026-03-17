@@ -173,9 +173,9 @@ def main():
     if cashflow is not None:
         save_csv(cashflow, "cash_flow.csv")
 
-    # Step 5: One year of daily price history
-    print("\n[5/5] 1-year price history...")
-    prices = stock.history(period="1y")
+    # Step 5: Full price history (all available data since IPO)
+    print("\n[5/5] Full price history (since IPO)...")
+    prices = stock.history(period="max")
     if prices is not None and not prices.empty:
         prices.index.name = "date"
         prices = prices.reset_index()
