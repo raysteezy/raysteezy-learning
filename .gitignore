@@ -1,0 +1,56 @@
+# ===========================
+# Security — prevent secret leaks
+# ===========================
+
+# Environment files (API keys, tokens)
+.env
+.env.*
+*.env
+.envrc
+
+# Credential files
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+credentials.json
+token.json
+service-account*.json
+*secret*
+*credentials*
+
+# ===========================
+# Python
+# ===========================
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# ===========================
+# OS files
+# ===========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ===========================
+# IDE / Editor
+# ===========================
+.vscode/
+.idea/
+*.sublime-*
+
+# ===========================
+# Logs
+# ===========================
+*.log
+logs/
