@@ -1,0 +1,28 @@
+{
+  "ticker": "PL",
+  "company": "Planet Labs PBC",
+  "training_period": "2021-04-26 to 2026-03-16",
+  "training_days": 1228,
+  "current_price": 24.6,
+  "models": {
+    "linear_regression": {
+      "r_squared": 0.0292,
+      "slope_per_year": 0.61,
+      "predictions": {
+        "6_months": 8.06,
+        "1_year": 8.36,
+        "2_years": 8.97
+      }
+    },
+    "polynomial_regression_deg3": {
+      "r_squared": 0.8491,
+      "predictions": {
+        "6_months": 37.17,
+        "1_year": 57.15,
+        "2_years": 115.49
+      }
+    }
+  },
+  "generated_at": "2026-03-17 07:44:12 UTC",
+  "disclaimer": "Educational model only. Simple trend extrapolation does not account for market volatility, company fundamentals, or macroeconomic conditions. Not financial advice."
+}
