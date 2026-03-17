@@ -1,5 +1,8 @@
 # Planet Labs (PL) — Price Prediction Models
 
+> **Disclaimer:** This analysis is for educational and academic purposes only. It does not constitute financial or investment advice. See [DISCLAIMER.md](../../../DISCLAIMER.md) for full details.
+
+
 ## Models
 
 ### Linear Regression
