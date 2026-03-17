@@ -1,14 +1,16 @@
 # Planet Labs (PL) — Price Prediction Models
 
-> **Disclaimer:** This analysis is for educational and academic purposes only. It does not constitute financial or investment advice. See [DISCLAIMER.md](../../../DISCLAIMER.md) for full details.
+> **Disclaimer:** This analysis is for educational and academic purposes only. It does not constitute financial or investment advice. See [LEGAL.md](../../../LEGAL.md) for full details.
 
 ## What's In Here
 
-I started with simple linear and polynomial regression (v1), got a C+ grade on accuracy, and then rebuilt everything with better techniques (v2). Both versions are still in the code so you can see the progression.
+I started with simple linear and polynomial regression (V1), got a C+ grade on accuracy, and then rebuilt everything with better techniques (V2). Both versions live in separate files so you can see the progression.
 
 ---
 
 ## V1 Models (Baseline — Kept for Comparison)
+
+**Script:** [`prediction_v1.py`](../../../scripts/prediction_v1.py)
 
 ### Linear Regression
 - Draws a straight line through all historical prices
@@ -31,6 +33,8 @@ I started with simple linear and polynomial regression (v1), got a C+ grade on a
 ---
 
 ## V2 Models (Upgraded)
+
+**Script:** [`prediction_v2.py`](../../../scripts/prediction_v2.py)
 
 ### ARIMA (Auto-Regressive Integrated Moving Average)
 - A proper time-series model that understands autocorrelation (today's price depends on yesterday's price)
@@ -55,7 +59,7 @@ I started with simple linear and polynomial regression (v1), got a C+ grade on a
 
 ## V1 vs V2 Comparison
 
-| Metric | v1 Linear | v1 Polynomial | v2 ARIMA | v2 Ridge |
+| Metric | V1 Linear | V1 Polynomial | V2 ARIMA | V2 Ridge |
 |--------|-----------|---------------|----------|----------|
 | R² | 0.03 (train) | 0.85 (train) | ~0.84 (OOS) | ~0.85 (OOS) |
 | Validation | None | None | Walk-forward | Walk-forward |
@@ -63,7 +67,7 @@ I started with simple linear and polynomial regression (v1), got a C+ grade on a
 | Overfitting | Underfits | Severely overfits | Controlled | Regularized |
 | Confidence Intervals | No | No | Yes (bootstrap) | No |
 
-Key lesson: v1's polynomial R² of 0.85 looked impressive but was meaningless because it was tested on the same data it trained on. v2's R² of 0.85 is actually meaningful because it's measured on data the model never saw.
+Key lesson: V1's polynomial R² of 0.85 looked impressive but was meaningless because it was tested on the same data it trained on. V2's R² of 0.85 is actually meaningful because it's measured on data the model never saw.
 
 ---
 
@@ -79,7 +83,7 @@ For Monte Carlo simulation (a probabilistic approach), see [monte-carlo/](monte-
 
 ## Charts
 
-- `pl_price_prediction.png` — Side-by-side comparison of v1 and v2 forecasts with confidence intervals
+- `pl_price_prediction.png` — Side-by-side comparison of V1 and V2 forecasts with confidence intervals
 - `pl_model_dashboard.png` — 4-panel dashboard with walk-forward validation, residuals, and model comparison table
 
 ## Important Disclaimer
