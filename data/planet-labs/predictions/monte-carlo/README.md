@@ -1,5 +1,8 @@
 # Monte Carlo Simulation — Planet Labs (PL)
 
+> **Disclaimer:** This simulation is for educational and academic purposes only. It does not constitute financial or investment advice. Past performance does not guarantee future results. See [DISCLAIMER.md](../../../../DISCLAIMER.md) for full details.
+
+
 > **Geometric Brownian Motion (GBM) with 10,000 simulation paths, 5 stress-test scenarios, and full robustness analysis.**
 
 **Disclaimer:** Educational simulation only — not financial advice. Past volatility and drift do not guarantee future results.
