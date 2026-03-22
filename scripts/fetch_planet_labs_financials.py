@@ -93,7 +93,7 @@ def save_csv(df, filename):
 def main():
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")
-    print(f"  Planet Labs (PL) — Financial Data Collector")
+    print("  Planet Labs (PL) — Financial Data Collector")
     print(f"  {timestamp}")
     print(f"{'=' * 60}")
 
