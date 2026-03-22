@@ -657,6 +657,14 @@ def save_predictions_csv(arima_ci, last_date):
 
 # --- main ---
 
+def print_wf_results(wf):
+    """Print walk-forward validation results."""
+    print(f"  MAE: ${wf['mae']:.2f}")
+    print(f"  RMSE: ${wf['rmse']:.2f}")
+    print(f"  R\u00b2 (out-of-sample): {wf['r2']:.4f}")
+    print(f"  Directional accuracy: {wf['directional_accuracy']:.1f}%")
+
+
 def main():
     np.random.seed(RANDOM_SEED)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -692,19 +700,11 @@ def main():
 
     print("\n[5/8] Walk-forward validation (ARIMA — takes a minute)...")
     arima_wf = arima_walk_forward(close_prices, n_test=63)
-    print(f"  MAE: ${arima_wf['mae']:.2f}")
-    print(f"  RMSE: ${arima_wf['rmse']:.2f}")
-    print(f"  R² (out-of-sample): {arima_wf['r2']:.4f}")
-    print(f"  Directional accuracy: "
-          f"{arima_wf['directional_accuracy']:.1f}%")
+    print_wf_results(arima_wf)
 
     print("\n[6/8] Walk-forward validation (Ridge)...")
     ridge_wf = ridge_walk_forward(df_features, n_test=63)
-    print(f"  MAE: ${ridge_wf['mae']:.2f}")
-    print(f"  RMSE: ${ridge_wf['rmse']:.2f}")
-    print(f"  R² (out-of-sample): {ridge_wf['r2']:.4f}")
-    print(f"  Directional accuracy: "
-          f"{ridge_wf['directional_accuracy']:.1f}%")
+    print_wf_results(ridge_wf)
 
     print("\n[7/8] Building forecasts with prediction intervals...")
     arima_ci = bootstrap_forecast(
