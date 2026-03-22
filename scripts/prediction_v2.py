@@ -212,7 +212,7 @@ def build_arima_model(close_prices):
     # Let auto_arima find the best model
     # error_action='ignore' skips models that fail during the search —
     # that's normal since auto_arima tries lots of (p,d,q) combos and
-    # some just won't converge. max_iter=200 gives each model more
+    # some just won't converge. maxiter=200 gives each model more
     # time to converge so we don't get unnecessary ConvergenceWarnings.
     model = pm.auto_arima(
         close_prices,
@@ -224,7 +224,7 @@ def build_arima_model(close_prices):
         max_p=5,
         max_q=5,
         max_order=10,
-        max_iter=200,
+        maxiter=200,
         trace=False,
     )
 
@@ -257,7 +257,7 @@ def arima_walk_forward(close_prices, n_test=63, step=1):
         model = pm.auto_arima(
             history, seasonal=False, stepwise=True,
             suppress_warnings=False, error_action="ignore",
-            max_p=5, max_q=5, max_iter=200,
+            max_p=5, max_q=5, maxiter=200,
         )
         # Predict next day
         pred = model.predict(n_periods=1)[0]
