@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Planet Labs (PL) — Monte Carlo Simulation V2 (Upgraded)
-========================================================
-After V1 got a C+ for using constant volatility and made-up stress
+
+After I ran V1 through peer reviews, AI tests, as a result I got a C+ for using constant volatility and made-up stress
 scenarios, I rebuilt the simulation with proper stochastic models:
 
   - Stochastic volatility (Heston-inspired model where volatility
@@ -49,19 +49,14 @@ from scipy import stats
 
 warnings.filterwarnings("ignore")
 
-
-# ── Settings ─────────────────────────────────────────────────────────
-
 TICKER = "PL"
 N_SIMULATIONS = 10_000
-FORECAST_DAYS = 504          # ~2 trading years
+FORECAST_DAYS = 504          #2 trading years
 BOOTSTRAP_SAMPLES = 5_000
 RANDOM_SEED = 42
 
 
-# =====================================================================
 # STEP 1: Get Historical Data and Compute Parameters
-# =====================================================================
 
 print(f"[1/7] Fetching {TICKER} price history ...")
 
@@ -85,9 +80,7 @@ print(f"  Skewness      : {log_returns.skew():.4f}")
 print(f"  Kurtosis      : {log_returns.kurtosis():.4f}")
 
 
-# =====================================================================
 # STEP 2: V1 Baseline GBM (for comparison only)
-# =====================================================================
 
 print(f"\n[2/7] Running V1 baseline GBM ({N_SIMULATIONS:,} paths) ...")
 
@@ -555,15 +548,12 @@ for s_shift in sigma_shifts:
         })
 sens_df = pd.DataFrame(sensitivity)
 
-
-# =====================================================================
 # STEP 7: Charts
-# =====================================================================
 
 print("\n[7/7] Making charts ...")
 plt.style.use("dark_background")
 
-# ── Chart 1: Multi-Model Fan Chart ──────────────────────────────────
+# Chart 1: Multi-Model Fan Chart
 
 fig, ax = plt.subplots(figsize=(14, 7))
 
@@ -644,7 +634,7 @@ plt.close()
 print("  Saved: fan_chart.png")
 
 
-# ── Chart 2: Stress Test Scenarios ──────────────────────────────────
+# Chart 2: Stress Test Scenarios
 
 fig2, ax2 = plt.subplots(figsize=(14, 7))
 colors_st = {
@@ -689,11 +679,12 @@ plt.close()
 print("  Saved: stress.png")
 
 
-# ── Chart 3: Robustness Dashboard (4-panel) ─────────────────────────
+# Chart 3: Robustness Dashboard (4-panel)
 
 fig3, axes = plt.subplots(2, 2, figsize=(16, 12))
 
 # Panel 1: Terminal distributions
+
 ax_dist = axes[0, 0]
 bins = np.linspace(0, 150, 200)
 ax_dist.hist(v1_terminal, bins=bins, alpha=0.3, color="#888888",
@@ -715,6 +706,7 @@ ax_dist.legend(fontsize=8)
 ax_dist.set_xlim(0, 150)
 
 # Panel 2: Bootstrap distributions
+
 ax_boot = axes[0, 1]
 ax_boot.hist(boot_mus, bins=80, color="#00e676", alpha=0.6,
              label="Annualized mu")
@@ -730,6 +722,7 @@ ax_boot.legend(loc="upper left", fontsize=9)
 ax_boot2.legend(loc="upper right", fontsize=9)
 
 # Panel 3: Sensitivity heatmap
+
 ax_heat = axes[1, 0]
 pivot = sens_df.pivot(
     index="sigma_shift", columns="mu_shift", values="median_2yr"
@@ -756,6 +749,7 @@ for i in range(len(pivot.index)):
 plt.colorbar(im, ax=ax_heat, label="Price ($)")
 
 # Panel 4: Model comparison table
+
 ax_tbl = axes[1, 1]
 ax_tbl.axis("off")
 ax_tbl.set_title("Model Comparison (2-Year)",
@@ -826,9 +820,7 @@ plt.close()
 print("  Saved: risk.png")
 
 
-# =====================================================================
 # Save All Results
-# =====================================================================
 
 summary = {
     "ticker": TICKER,
