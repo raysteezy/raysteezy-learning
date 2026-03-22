@@ -1,6 +1,6 @@
 """
 Planet Labs (PL) — Price Prediction V1 (Baseline)
-===================================================
+
 My first attempt at predicting stock prices. I used basic regression
 models and trained/tested on the same data (which I later learned
 is a bad idea — it makes the models look way better than they are).
@@ -36,15 +36,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
+import yfinance as yf
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 
-
-# ── Settings ─────────────────────────────────────────────────────────
-
 TICKER = "PL"
 OUTPUT_DIR = os.path.join("data", "planet-labs", "predictions")
-FORECAST_DAYS = 126          # 6-month forecast (trading days)
+FORECAST_DAYS = 126
 RANDOM_SEED = 42
 
 COLORS = {
@@ -55,53 +53,22 @@ COLORS = {
 }
 
 
-# =====================================================================
-# STEP 1: Load Data
-# =====================================================================
-
-def load_data():
-    """
-    Get PL's full price history from Yahoo Finance.
-    Nothing fancy here — just grab the closing prices.
-    """
-    try:
-        import yfinance as yf
-    except ImportError:
-        os.system("pip install yfinance")
-        import yfinance as yf
-
+def load_data() -> pd.DataFrame:
+    """Fetch PL's full price history from Yahoo Finance."""
     stock = yf.Ticker(TICKER)
-    hist = stock.history(period="max").reset_index()
-    return hist
+    return stock.history(period="max").reset_index()
 
 
-# =====================================================================
-# STEP 2: Build V1 Models
-# =====================================================================
-
-def build_v1_models(hist):
-    """
-    Linear regression and polynomial regression.
-
-    Both of these use the date (as an ordinal number) as the only input.
-    This is a really limited approach because the model has no information
-    about volume, returns, volatility, or anything else that actually
-    matters for stock prices.
-
-    Linear: y = mx + b
-    Polynomial: y = ax³ + bx² + cx + d
-    """
+def build_v1_models(hist: pd.DataFrame) -> dict:
+    """Fit linear and polynomial-3 regression on date ordinals."""
     df = hist.copy()
     df["date_ordinal"] = df["Date"].apply(lambda x: x.toordinal())
     X = df["date_ordinal"].values.reshape(-1, 1)
     y = df["Close"].values
 
-    # Linear regression — fits a straight line through the data
-    linear = LinearRegression()
-    linear.fit(X, y)
+    linear = LinearRegression().fit(X, y)
     y_pred_lin = linear.predict(X)
 
-    # Polynomial degree 3 — fits a curve through the data
     poly_coeffs = np.polyfit(df["date_ordinal"].values, y, 3)
     poly_model = np.poly1d(poly_coeffs)
     y_pred_poly = poly_model(df["date_ordinal"].values)
@@ -118,19 +85,11 @@ def build_v1_models(hist):
     }
 
 
-# =====================================================================
-# STEP 3: Chart
-# =====================================================================
-
-def plot_v1_chart(hist, v1_models, current_price, last_date):
-    """
-    Chart showing both V1 models — the linear line and the polynomial curve.
-    You can clearly see the polynomial curving off into crazy territory
-    past the training data, which is the whole overfitting problem.
-    """
+def plot_v1_chart(hist: pd.DataFrame, v1_models: dict,
+                  current_price: float, last_date) -> None:
+    """Chart showing both V1 model fits and forecasts."""
     plt.style.use("dark_background")
     hist_dates = pd.to_datetime(hist["Date"])
-
     future_trading = pd.bdate_range(
         start=last_date + timedelta(days=1), periods=FORECAST_DAYS
     )
@@ -138,29 +97,24 @@ def plot_v1_chart(hist, v1_models, current_price, last_date):
     fig, ax = plt.subplots(figsize=(16, 9), facecolor=COLORS["bg"])
     ax.set_facecolor(COLORS["panel"])
 
-    # Historical prices
     ax.plot(hist_dates, hist["Close"], color=COLORS["accent"],
             linewidth=1.2, alpha=0.9, label="Historical Price")
 
-    # Forecast zone
     ax.axvspan(future_trading[0], future_trading[-1],
                alpha=0.06, color=COLORS["accent"])
     ax.axvline(x=last_date, color=COLORS["muted"], linestyle=":", alpha=0.5)
 
-    # V1 linear forecast
     v1_ordinals = np.array([d.toordinal() for d in future_trading])
     v1_linear = v1_models["linear"].predict(v1_ordinals.reshape(-1, 1))
     ax.plot(future_trading, v1_linear, color=COLORS["orange"],
             linewidth=2, linestyle="--",
             label=f"Linear (R²={v1_models['r2_linear']:.3f})")
 
-    # V1 polynomial forecast (clip at zero so it doesn't go negative)
     v1_poly = np.clip(v1_models["poly_model"](v1_ordinals), 0, None)
     ax.plot(future_trading, v1_poly, color=COLORS["purple"],
             linewidth=2, linestyle=":",
             label=f"Polynomial deg-3 (R²={v1_models['r2_poly']:.3f})")
 
-    # V1 fits on historical data
     hist_ordinals = np.array([d.toordinal() for d in hist_dates])
     ax.plot(hist_dates,
             v1_models["linear"].predict(hist_ordinals.reshape(-1, 1)),
@@ -168,7 +122,6 @@ def plot_v1_chart(hist, v1_models, current_price, last_date):
     ax.plot(hist_dates, v1_models["poly_model"](hist_ordinals),
             color=COLORS["purple"], linewidth=0.8, alpha=0.4)
 
-    # Current price marker
     ax.scatter(last_date, current_price, color=COLORS["orange"],
                s=100, zorder=5, edgecolors="white", linewidth=1)
     ax.annotate(f"Current: ${current_price:.2f}",
@@ -203,11 +156,8 @@ def plot_v1_chart(hist, v1_models, current_price, last_date):
     print(f"  Saved: {filepath}")
 
 
-# =====================================================================
-# STEP 4: Save Results
-# =====================================================================
-
-def save_summary(hist, v1_models, current_price):
+def save_summary(hist: pd.DataFrame, v1_models: dict,
+                 current_price: float) -> dict:
     """Save V1 model results to JSON."""
     summary = {
         "ticker": TICKER,
@@ -245,12 +195,11 @@ def save_summary(hist, v1_models, current_price):
     return summary
 
 
-def save_predictions_csv(v1_models, last_date):
+def save_predictions_csv(v1_models: dict, last_date) -> None:
     """Save V1 forecast data to CSV."""
     future_trading = pd.bdate_range(
         start=last_date + timedelta(days=1), periods=FORECAST_DAYS
     )
-
     v1_ordinals = np.array([d.toordinal() for d in future_trading])
     v1_lin = v1_models["linear"].predict(v1_ordinals.reshape(-1, 1))
     v1_poly = np.clip(v1_models["poly_model"](v1_ordinals), 0, None)
@@ -266,11 +215,7 @@ def save_predictions_csv(v1_models, last_date):
     print(f"  Saved: {filepath}")
 
 
-# =====================================================================
-# MAIN
-# =====================================================================
-
-def main():
+def main() -> None:
     np.random.seed(RANDOM_SEED)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")
@@ -280,7 +225,6 @@ def main():
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # Load data
     print("\n[1/4] Loading price data...")
     hist = load_data()
     current_price = float(hist["Close"].iloc[-1])
@@ -288,23 +232,19 @@ def main():
     print(f"  {len(hist)} trading days loaded")
     print(f"  Current price: ${current_price:.2f}")
 
-    # Build models
     print("\n[2/4] Fitting V1 baseline models...")
     v1_models = build_v1_models(hist)
     print(f"  Linear R² (train):     {v1_models['r2_linear']:.4f}")
     print(f"  Polynomial R² (train): {v1_models['r2_poly']:.4f}")
     print(f"  (These are on training data — no out-of-sample validation)")
 
-    # Save results
     print("\n[3/4] Saving results...")
     save_summary(hist, v1_models, current_price)
     save_predictions_csv(v1_models, last_date)
 
-    # Chart
     print("\n[4/4] Making chart...")
     plot_v1_chart(hist, v1_models, current_price, last_date)
 
-    # Quick forecast printout
     end_ordinal = last_date.toordinal() + FORECAST_DAYS
     lin_6mo = v1_models["linear"].predict([[end_ordinal]])[0]
     poly_6mo = v1_models["poly_model"](end_ordinal)
