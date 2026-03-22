@@ -23,8 +23,7 @@ Disclaimer: Educational simulation only — not financial advice.
 """
 
 import json
-import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 
 import matplotlib
 matplotlib.use("Agg")
@@ -32,8 +31,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yfinance as yf
-
-warnings.filterwarnings("ignore")
 
 
 # ── Settings ─────────────────────────────────────────────────────────
@@ -215,7 +212,8 @@ summary = {
     "version": "v1 — constant-volatility GBM",
     "grade": "C+",
     "current_price": round(float(current_price), 2),
-    "run_date": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+    # use timezone-aware utc instead of deprecated utcnow()
+    "run_date": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
     "parameters": {
         "trading_days": len(log_returns),
         "daily_drift": round(float(mu_daily), 6),

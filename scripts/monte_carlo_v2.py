@@ -35,8 +35,7 @@ Disclaimer: Educational simulation only — not financial advice.
 """
 
 import json
-import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 
 import matplotlib
 matplotlib.use("Agg")
@@ -46,8 +45,6 @@ import pandas as pd
 import yfinance as yf
 from matplotlib.colors import LinearSegmentedColormap
 from scipy import stats
-
-warnings.filterwarnings("ignore")
 
 TICKER = "PL"
 N_SIMULATIONS = 10_000
@@ -226,9 +223,11 @@ try:
     from hmmlearn.hmm import GaussianHMM
 
     returns_2d = log_returns.values.reshape(-1, 1)
+    # bumped n_iter and set tol so the HMM actually converges
+    # instead of just hiding the ConvergenceWarning
     hmm = GaussianHMM(
         n_components=2, covariance_type="full",
-        n_iter=1000, random_state=RANDOM_SEED,
+        n_iter=2000, tol=1e-4, random_state=RANDOM_SEED,
     )
     hmm.fit(returns_2d)
 
@@ -826,7 +825,8 @@ summary = {
     "ticker": TICKER,
     "company": stock.info.get("longName", "Planet Labs PBC"),
     "current_price": round(float(current_price), 2),
-    "run_date": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+    # use timezone-aware utc instead of deprecated utcnow()
+    "run_date": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
     "version": "v2 — stochastic vol + jump diffusion + regime switching",
     "historical_parameters": {
         "trading_days": len(log_returns),

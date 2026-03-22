@@ -28,7 +28,6 @@ Disclaimer: Educational project only — not financial advice.
 
 import json
 import os
-import warnings
 from datetime import datetime, timedelta, timezone
 
 import matplotlib
@@ -39,8 +38,6 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
-
-warnings.filterwarnings("ignore")
 
 
 # ── Settings ─────────────────────────────────────────────────────────

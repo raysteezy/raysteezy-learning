@@ -30,7 +30,6 @@ Disclaimer: Educational project only — not financial advice.
 
 import json
 import os
-import warnings
 from datetime import datetime, timedelta, timezone
 
 import matplotlib
@@ -42,8 +41,6 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression, RidgeCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler
-
-warnings.filterwarnings("ignore")
 
 
 # ── Settings ─────────────────────────────────────────────────────────
@@ -213,15 +210,21 @@ def build_arima_model(close_prices):
     n_diffs = ndiffs(close_prices, alpha=0.05, test="adf", max_d=3)
 
     # Let auto_arima find the best model
+    # error_action='ignore' skips models that fail during the search —
+    # that's normal since auto_arima tries lots of (p,d,q) combos and
+    # some just won't converge. max_iter=200 gives each model more
+    # time to converge so we don't get unnecessary ConvergenceWarnings.
     model = pm.auto_arima(
         close_prices,
         d=n_diffs,
         seasonal=False,        # stock prices don't really have seasonality
         stepwise=True,         # faster search
-        suppress_warnings=True,
+        suppress_warnings=False,
+        error_action="ignore",
         max_p=5,
         max_q=5,
         max_order=10,
+        max_iter=200,
         trace=False,
     )
 
@@ -253,7 +256,8 @@ def arima_walk_forward(close_prices, n_test=63, step=1):
         # Fit ARIMA on history so far
         model = pm.auto_arima(
             history, seasonal=False, stepwise=True,
-            suppress_warnings=True, max_p=5, max_q=5,
+            suppress_warnings=False, error_action="ignore",
+            max_p=5, max_q=5, max_iter=200,
         )
         # Predict next day
         pred = model.predict(n_periods=1)[0]
