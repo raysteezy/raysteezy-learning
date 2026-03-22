@@ -12,8 +12,8 @@ My first try. I used linear and polynomial regression with just the date as inpu
 
 | Model | R² (Train) | Issue |
 |-------|----------:|-------|
-| Linear | 0.029 | Barely explains anything |
-| Poly (deg-3) | 0.849 | Overfits — predicts $115+ in 2 years |
+| Linear | 0.036 | Barely explains anything |
+| Poly (deg-3) | 0.853 | Overfits — predicts $115+ in 2 years |
 
 **What went wrong:**
 - R² computed on training data only (no held-out test set)
@@ -42,16 +42,16 @@ Rebuilt everything. Added proper time-series models, walk-forward validation, an
 
 | Model | R² (OOS) | MAE | RMSE |
 |-------|--------:|----:|-----:|
-| ARIMA | 0.835 | $0.97 | $1.19 |
-| Ridge | 0.851 | $0.94 | $1.14 |
+| ARIMA | 0.703 | $1.14 | $1.57 |
+| Ridge | 0.737 | $1.11 | $1.47 |
 
-**6-month forecast (ARIMA):** $24.60 — 90% CI [$23.11, $28.51]
+**6-month forecast (ARIMA):** $36.35 — 90% CI [$34.22, $39.79]
 
 ---
 
 ## Takeaways
 
-- V1's R² of 0.85 was on training data (cheating). V2's R² of 0.85 is on unseen data (honest).
+- V1's R² of 0.85 was on training data (cheating). V2's R² of 0.74 is on unseen data (honest).
 - More features help — Ridge with returns and volume beats ARIMA with price alone.
 - Predicting direction (~50%) is way harder than predicting level.
 - Always use confidence intervals — single-number predictions are misleading.

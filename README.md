@@ -30,8 +30,8 @@ My first attempt. I used basic regression with no proper validation. These model
 
 | Model | R² (Training) | Problem |
 |-------|--------------:|---------|
-| Linear Regression | 0.029 | Underfits — barely explains anything |
-| Polynomial (deg-3) | 0.849 | Overfits — curves up forever past training data |
+| Linear Regression | 0.036 | Underfits — barely explains anything |
+| Polynomial (deg-3) | 0.853 | Overfits — curves up forever past training data |
 
 ### V1 Monte Carlo
 
@@ -40,8 +40,8 @@ My first attempt. I used basic regression with no proper validation. These model
 | Model | Constant-vol Geometric Brownian Motion (GBM) |
 | Stress tests | Made-up multipliers (not based on real data) |
 | Validation | None |
-| 2-year median | $20.09 |
-| P(Profit) | 42.3% |
+| 2-year median | $31.02 |
+| P(Profit) | 46.8% |
 
 ### Why V1 Got a C+
 
@@ -81,24 +81,24 @@ After getting a C+ on V1, I rebuilt everything to fix all 7 issues. This section
 
 | Model | R² (Out-of-Sample) | MAE | RMSE | Directional Accuracy |
 |-------|-------------------:|----:|-----:|---------------------:|
-| ARIMA | 0.835 | $0.97 | $1.19 | 50.0% |
-| Ridge + features | 0.851 | $0.94 | $1.14 | 47.6% |
+| ARIMA | 0.703 | $1.14 | $1.57 | 45.2% |
+| Ridge + features | 0.737 | $1.11 | $1.47 | 50.8% |
 
-The key difference: V1's polynomial R² of 0.85 was on training data (cheating). V2's R² of 0.85 is on data the model never saw (honest).
+The key difference: V1's polynomial R² of 0.85 was on training data (cheating). V2's R² of 0.74 is on data the model never saw (honest).
 
-**ARIMA 6-month forecast:** $24.60 — 90% CI: [$23.11, $28.51]
+**ARIMA 6-month forecast:** $36.35 — 90% CI: [$34.22, $39.79]
 
 ### V2 Monte Carlo Results
 
 | Model | 2-Year Median | P(Profit) | P(Double) | VaR 95% |
 |-------|--------------:|----------:|----------:|--------:|
-| V1 GBM (baseline) | $20.09 | 42.3% | 20.1% | $3.52 |
-| V2 Heston | $15.51 | 35.6% | 18.6% | $1.83 |
-| V2 Jump Diffusion | $16.30 | 36.7% | 18.5% | $2.26 |
+| V1 GBM (baseline) | $31.02 | 46.8% | 23.6% | $5.32 |
+| V2 Heston | $23.89 | 39.3% | 21.2% | $2.76 |
+| V2 Jump Diffusion | $24.84 | 40.4% | 22.0% | $3.22 |
 
 The V2 models are more pessimistic because they're more realistic about tail risk and volatility clustering.
 
-**HMM Regime Detection:** Found 2 regimes in PL's history — Calm (85% of days, 46% annualized vol) and Volatile (15% of days, 131% annualized vol).
+**HMM Regime Detection:** Found 2 regimes in PL's history — Calm (85% of days, 46% annualized vol) and Volatile (15% of days, 134% annualized vol).
 
 ### V2 Charts
 

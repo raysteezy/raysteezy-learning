@@ -13,13 +13,13 @@ Basic Geometric Brownian Motion (GBM) with constant drift and volatility. 10,000
 | Detail | Value |
 |--------|-------|
 | Model | Constant-vol GBM |
-| 2yr Median | $20.09 |
-| P(Profit) | 42.3% |
+| 2yr Median | $31.02 |
+| P(Profit) | 46.8% |
 | Stress Tests | Made-up multipliers |
 | Validation | None |
 
 **What went wrong:**
-- Constant volatility — PL's real vol swings between 46% and 131%
+- Constant volatility — PL's real vol swings between 46% and 134%
 - No fat tails or sudden jumps
 - Stress scenarios were arbitrary, not grounded in data
 
@@ -40,7 +40,7 @@ Adds sudden jumps (crashes/spikes) on top of normal movement. Models the fat tai
 ### HMM (Regime Switching)
 Hidden Markov Model detects 2 regimes from PL's actual data:
 - **Calm** — 85% of days, ~46% annualized vol
-- **Volatile** — 15% of days, ~131% annualized vol
+- **Volatile** — 15% of days, ~134% annualized vol
 
 Stress tests now use these real regimes instead of made-up multipliers.
 
@@ -48,9 +48,9 @@ Stress tests now use these real regimes instead of made-up multipliers.
 
 | Model | Median | P(Profit) | P(Double) | VaR 95% |
 |-------|-------:|----------:|----------:|--------:|
-| V1 GBM | $20.09 | 42.3% | 20.1% | $3.52 |
-| V2 Heston | $15.51 | 35.6% | 18.6% | $1.83 |
-| V2 Jump Diff | $16.30 | 36.7% | 18.5% | $2.26 |
+| V1 GBM | $31.02 | 46.8% | 23.6% | $5.32 |
+| V2 Heston | $23.89 | 39.3% | 21.2% | $2.76 |
+| V2 Jump Diff | $24.84 | 40.4% | 22.0% | $3.22 |
 
 V2 is more pessimistic because it's more realistic about tail risk.
 
