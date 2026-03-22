@@ -661,7 +661,7 @@ def main():
     np.random.seed(RANDOM_SEED)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")
-    print(f"  Planet Labs (PL) — Price Prediction V2 (Upgraded)")
+    print("  Planet Labs (PL) — Price Prediction V2 (Upgraded)")
     print(f"  {timestamp}")
     print(f"{'=' * 60}")
 
@@ -682,7 +682,7 @@ def main():
     v1_models = build_v1_baseline(hist)
     print(f"  Linear R² (train):     {v1_models['r2_linear']:.4f}")
     print(f"  Polynomial R² (train): {v1_models['r2_poly']:.4f}")
-    print(f"  (Misleading — trained on same data they're scored on)")
+    print("  (Misleading — trained on same data they're scored on)")
 
     print("\n[4/8] Fitting ARIMA model...")
     close_prices = hist["Close"]
@@ -711,21 +711,9 @@ def main():
         arima_model, close_prices,
         n_ahead=FORECAST_DAYS, n_boot=1000
     )
-    fc = arima_ci["forecast"]
-    if isinstance(fc, np.ndarray):
-        end_price = float(fc[-1])
-    else:
-        end_price = float(fc.iloc[-1])
-    lo = arima_ci["ci_90_lower"]
-    hi = arima_ci["ci_90_upper"]
-    if isinstance(lo, np.ndarray):
-        end_lo = float(lo[-1])
-    else:
-        end_lo = float(lo.iloc[-1])
-    if isinstance(hi, np.ndarray):
-        end_hi = float(hi[-1])
-    else:
-        end_hi = float(hi.iloc[-1])
+    end_price = float(arima_ci["forecast"][-1])
+    end_lo = float(arima_ci["ci_90_lower"][-1])
+    end_hi = float(arima_ci["ci_90_upper"][-1])
     print(f"  ARIMA 6-mo forecast: ${end_price:.2f}")
     print(f"  90% CI: [${end_lo:.2f}, ${end_hi:.2f}]")
 
