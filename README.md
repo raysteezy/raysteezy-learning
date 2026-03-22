@@ -17,7 +17,7 @@
 
 This is my personal learning expierence. I'm a first-year college student teaching myself Python, data pipelines, and machine learning by working with real stock market data. There is nothing fancy this is just me figuring things out and documenting what I learn along the way.
 
-The main project tracks Planet Labs (PL) stock data using ~5 years of daily price history (since their IPO in April 2021). I built a pipeline that grabs financial data every week, and I've been building prediction models in two rounds — V1 and V2. Both versions live in separate files so you can see the progression.
+The main project tracks Planet Labs (PL) stock data using 5 years of daily price history (since their IPO in April 2021). I built a pipeline that grabs financial data every week, and I've been building prediction models in two rounds — V1 and V2. Both versions live in separate files so you can see the progression.
 
 All the data in this repo also gets synced to [Airweave](https://airweave.ai) for AI-powered search.
 
