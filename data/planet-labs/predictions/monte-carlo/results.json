@@ -1,155 +1,155 @@
 {
   "ticker": "PL",
   "company": "Planet Labs PBC",
-  "current_price": 24.6,
-  "generated_at": "2026-03-17 09:29:38 UTC",
+  "current_price": 33.83,
+  "run_date": "2026-03-22 01:49:59 UTC",
   "version": "v2 \u2014 stochastic vol + jump diffusion + regime switching",
   "historical_parameters": {
-    "trading_days": 1227,
-    "date_range": "2021-04-27 to 2026-03-16",
-    "daily_drift_mu": 0.000742,
-    "daily_volatility_sigma": 0.047418,
-    "annualized_drift": 0.1869,
-    "annualized_volatility": 0.7527,
-    "log_return_skewness": 0.4867,
-    "log_return_kurtosis": 14.3926
+    "trading_days": 1231,
+    "date_range": "2021-04-27 to 2026-03-20",
+    "daily_drift_mu": 0.000998,
+    "daily_volatility_sigma": 0.047978,
+    "annualized_drift": 0.2516,
+    "annualized_volatility": 0.7616,
+    "log_return_skewness": 0.543,
+    "log_return_kurtosis": 13.9607
   },
   "v2_heston_parameters": {
     "kappa": 3.0,
-    "theta": 0.002248,
-    "v0": 0.001671,
+    "theta": 0.002302,
+    "v0": 0.00476,
     "xi": 0.0669,
     "rho": -0.1
   },
   "v2_jump_diffusion_parameters": {
     "jump_intensity_per_year": 2.46,
-    "jump_mean": 0.0681,
-    "jump_std": 0.2712,
+    "jump_mean": 0.075,
+    "jump_std": 0.2743,
     "jumps_detected": 12
   },
   "regime_detection": {
     "calm": {
-      "mu_daily": 0.0007697575340251433,
-      "sigma_daily": 0.028699605099583036,
-      "frequency": 84.92257538712306,
-      "mu_annual": 0.1939788985743361,
-      "sigma_annual": 0.45559210691554697
+      "mu_daily": 0.0007140170452800244,
+      "sigma_daily": 0.02888790032408892,
+      "frequency": 85.21527213647441,
+      "mu_annual": 0.17993229541056613,
+      "sigma_annual": 0.45858120093816884
     },
     "volatile": {
-      "mu_daily": 0.0006529218696868052,
-      "sigma_daily": 0.08271827177672438,
-      "frequency": 15.077424612876936,
-      "mu_annual": 0.16453631116107492,
-      "sigma_annual": 1.313111856013594
+      "mu_daily": 0.0019204125786861283,
+      "sigma_daily": 0.08439907721220838,
+      "frequency": 14.78472786352559,
+      "mu_annual": 0.48394396982890436,
+      "sigma_annual": 1.3397938151210516
     }
   },
   "model_comparison": {
     "v1_gbm": {
       "6_months": {
-        "median": 23.37,
-        "mean": 26.72,
-        "p5": 9.64,
-        "p25": 16.23,
-        "p75": 33.54,
-        "p95": 54.66
+        "median": 33.08,
+        "mean": 37.94,
+        "p5": 13.51,
+        "p25": 22.88,
+        "p75": 47.67,
+        "p95": 78.15
       },
       "1_year": {
-        "median": 22.29,
-        "mean": 29.4,
-        "p5": 6.48,
-        "p25": 13.39,
-        "p75": 36.94,
-        "p95": 76.1
+        "median": 32.48,
+        "mean": 43.12,
+        "p5": 9.3,
+        "p25": 19.39,
+        "p75": 54.15,
+        "p95": 112.51
       },
       "2_years": {
-        "median": 20.09,
-        "mean": 35.63,
-        "p5": 3.52,
-        "p25": 9.92,
-        "p75": 41.47,
-        "p95": 117.15
+        "median": 31.02,
+        "mean": 55.75,
+        "p5": 5.32,
+        "p25": 15.19,
+        "p75": 64.57,
+        "p95": 184.67
       }
     },
     "v2_heston": {
       "6_months": {
-        "median": 21.83,
-        "mean": 27.14,
-        "p5": 7.67,
-        "p25": 14.11,
-        "p75": 33.7,
-        "p95": 64.65
+        "median": 30.58,
+        "mean": 38.52,
+        "p5": 10.78,
+        "p25": 19.69,
+        "p75": 47.9,
+        "p95": 93.68
       },
       "1_year": {
-        "median": 19.22,
-        "mean": 29.89,
-        "p5": 4.26,
-        "p25": 10.5,
-        "p75": 36.74,
-        "p95": 89.57
+        "median": 27.92,
+        "mean": 43.84,
+        "p5": 6.15,
+        "p25": 15.06,
+        "p75": 53.1,
+        "p95": 133.56
       },
       "2_years": {
-        "median": 15.51,
-        "mean": 36.95,
-        "p5": 1.83,
-        "p25": 6.24,
-        "p75": 36.81,
-        "p95": 134.72
+        "median": 23.89,
+        "mean": 57.71,
+        "p5": 2.76,
+        "p25": 9.61,
+        "p75": 57.29,
+        "p95": 206.89
       }
     },
     "v2_jump_diffusion": {
       "6_months": {
-        "median": 22.16,
-        "mean": 26.9,
-        "p5": 8.22,
-        "p25": 14.51,
-        "p75": 33.76,
-        "p95": 60.77
+        "median": 31.23,
+        "mean": 38.71,
+        "p5": 11.76,
+        "p25": 21.15,
+        "p75": 47.56,
+        "p95": 90.74
       },
       "1_year": {
-        "median": 20.09,
-        "mean": 29.4,
-        "p5": 4.94,
-        "p25": 11.22,
-        "p75": 35.74,
-        "p95": 84.72
+        "median": 28.74,
+        "mean": 44.16,
+        "p5": 7.17,
+        "p25": 16.42,
+        "p75": 53.12,
+        "p95": 128.59
       },
       "2_years": {
-        "median": 16.3,
-        "mean": 34.6,
-        "p5": 2.26,
-        "p25": 7.08,
-        "p75": 36.68,
-        "p95": 122.18
+        "median": 24.84,
+        "mean": 56.94,
+        "p5": 3.22,
+        "p25": 10.72,
+        "p75": 59.17,
+        "p95": 208.44
       }
     }
   },
   "risk_metrics": {
     "v1_gbm": {
-      "var_95": 3.52,
-      "var_99": 1.7,
-      "cvar_95": 2.4,
-      "cvar_99": 1.25,
-      "prob_profit": 42.3,
-      "prob_double": 20.1,
-      "prob_below_10": 25.2
+      "var_95": 5.32,
+      "var_99": 2.55,
+      "cvar_95": 3.6,
+      "cvar_99": 1.87,
+      "prob_profit": 46.8,
+      "prob_double": 23.6,
+      "prob_below_10": 14.0
     },
     "v2_heston": {
-      "var_95": 1.83,
-      "var_99": 0.73,
-      "cvar_95": 1.16,
-      "cvar_99": 0.49,
-      "prob_profit": 35.6,
-      "prob_double": 18.6,
-      "prob_below_10": 37.0
+      "var_95": 2.76,
+      "var_99": 1.09,
+      "cvar_95": 1.71,
+      "cvar_99": 0.72,
+      "prob_profit": 39.3,
+      "prob_double": 21.2,
+      "prob_below_10": 26.0
     },
     "v2_jump_diffusion": {
-      "var_95": 2.26,
-      "var_99": 1.03,
-      "cvar_95": 1.5,
-      "cvar_99": 0.7,
-      "prob_profit": 36.7,
-      "prob_double": 18.5,
-      "prob_below_10": 34.8
+      "var_95": 3.22,
+      "var_99": 1.45,
+      "cvar_95": 2.14,
+      "cvar_99": 0.99,
+      "prob_profit": 40.4,
+      "prob_double": 22.0,
+      "prob_below_10": 23.0
     }
   },
   "stress_testing": {
@@ -157,61 +157,61 @@
       "name": "Market Crash (2008-style)",
       "description": "Extreme volatile regime with forced negative drift",
       "source": "HMM volatile regime, amplified",
-      "mu_daily": -0.001959,
-      "sigma_daily": 0.165437,
-      "median_2yr": 0.01,
+      "mu_daily": -0.005761,
+      "sigma_daily": 0.168798,
+      "median_2yr": 0.0,
       "p10_2yr": 0.0,
-      "p90_2yr": 1.06,
-      "prob_profit": 1.5,
+      "p90_2yr": 0.16,
+      "prob_profit": 0.3,
       "max_drawdown_median": -100.0
     },
     "bear_market": {
       "name": "Prolonged Bear Market",
       "description": "Volatile regime continues with negative drift",
       "source": "HMM volatile regime, slightly amplified",
-      "mu_daily": -0.000653,
-      "sigma_daily": 0.107534,
-      "median_2yr": 0.96,
-      "p10_2yr": 0.04,
-      "p90_2yr": 20.3,
-      "prob_profit": 8.6,
-      "max_drawdown_median": -96.1
+      "mu_daily": -0.00192,
+      "sigma_daily": 0.109719,
+      "median_2yr": 0.61,
+      "p10_2yr": 0.03,
+      "p90_2yr": 13.34,
+      "prob_profit": 5.1,
+      "max_drawdown_median": -98.2
     },
     "base_case": {
       "name": "Base Case (Historical)",
       "description": "Blend of both regimes weighted by their frequency",
       "source": "Full historical parameters",
-      "mu_daily": 0.000742,
-      "sigma_daily": 0.047418,
-      "median_2yr": 20.24,
-      "p10_2yr": 5.11,
-      "p90_2yr": 80.47,
-      "prob_profit": 43.4,
-      "max_drawdown_median": -17.7
+      "mu_daily": 0.000998,
+      "sigma_daily": 0.047978,
+      "median_2yr": 30.96,
+      "p10_2yr": 8.05,
+      "p90_2yr": 123.74,
+      "prob_profit": 46.8,
+      "max_drawdown_median": -9.0
     },
     "calm_bull": {
       "name": "Calm Bull Market",
       "description": "Calm regime dominates with positive drift",
       "source": "HMM calm regime",
-      "mu_daily": 0.00077,
-      "sigma_daily": 0.0287,
-      "median_2yr": 29.39,
-      "p10_2yr": 12.7,
-      "p90_2yr": 67.2,
-      "prob_profit": 60.7,
-      "max_drawdown_median": -0.6
+      "mu_daily": 0.000714,
+      "sigma_daily": 0.028888,
+      "median_2yr": 39.52,
+      "p10_2yr": 17.1,
+      "p90_2yr": 90.32,
+      "prob_profit": 59.4,
+      "max_drawdown_median": -0.8
     },
     "volatile_bull": {
       "name": "Volatile Bull (Sector Boom)",
       "description": "Strong positive drift but wild swings",
       "source": "HMM calm drift amplified, volatile vol amplified",
-      "mu_daily": 0.002309,
-      "sigma_daily": 0.124077,
-      "median_2yr": 1.59,
-      "p10_2yr": 0.05,
-      "p90_2yr": 55.59,
-      "prob_profit": 15.9,
-      "max_drawdown_median": -93.5
+      "mu_daily": 0.002142,
+      "sigma_daily": 0.126599,
+      "median_2yr": 1.72,
+      "p10_2yr": 0.04,
+      "p90_2yr": 65.57,
+      "prob_profit": 14.9,
+      "max_drawdown_median": -94.9
     }
   },
   "robustness": {
@@ -223,7 +223,7 @@
           "rmse": 0.2309
         },
         "heston": {
-          "mean_error": 0.0552,
+          "mean_error": 0.0554,
           "mae": 0.1725,
           "rmse": 0.2313
         },
@@ -236,7 +236,7 @@
           "rmse": 0.1938
         },
         "heston": {
-          "mean_error": 0.0632,
+          "mean_error": 0.0634,
           "mae": 0.1571,
           "rmse": 0.1946
         },
@@ -249,21 +249,21 @@
           "rmse": 0.1906
         },
         "heston": {
-          "mean_error": 0.081,
+          "mean_error": 0.0812,
           "mae": 0.146,
-          "rmse": 0.1911
+          "rmse": 0.1912
         },
         "n_tests": 16
       }
     },
     "bootstrap_confidence_intervals": {
       "mu_95_ci": [
-        -0.474086,
-        0.863141
+        -0.417914,
+        0.935328
       ],
       "sigma_95_ci": [
-        0.67005,
-        0.840226
+        0.67981,
+        0.846499
       ]
     }
   },
