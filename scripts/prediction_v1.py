@@ -223,7 +223,7 @@ def main():
     np.random.seed(RANDOM_SEED)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")
-    print(f"  Planet Labs (PL) — Price Prediction V1 (Baseline)")
+    print("  Planet Labs (PL) — Price Prediction V1 (Baseline)")
     print(f"  {timestamp}")
     print(f"{'=' * 60}")
 
@@ -240,7 +240,7 @@ def main():
     v1_models = build_v1_models(hist)
     print(f"  Linear R² (train):     {v1_models['r2_linear']:.4f}")
     print(f"  Polynomial R² (train): {v1_models['r2_poly']:.4f}")
-    print(f"  (These are on training data — no out-of-sample validation)")
+    print("  (These are on training data — no out-of-sample validation)")
 
     print("\n[3/4] Saving results...")
     save_summary(hist, v1_models, current_price)
@@ -256,7 +256,7 @@ def main():
     print(f"\n{'=' * 60}")
     print(f"  V1 Linear  6-month forecast:     ${lin_6mo:.2f}")
     print(f"  V1 Polynomial 6-month forecast:  ${poly_6mo:.2f}")
-    print(f"  (No confidence intervals — that's one of the problems)")
+    print("  (No confidence intervals — that's one of the problems)")
     print(f"{'=' * 60}")
 
 
