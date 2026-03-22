@@ -924,7 +924,7 @@ def main():
     paths_v1 = run_v1_gbm(current_price, mu_daily, sigma_daily)
     print(f"  V1 GBM 2yr median: ${np.median(paths_v1[FORECAST_DAYS]):.2f}")
 
-    print(f"\n[3/7] Running V2 stochastic volatility model ...")
+    print("\n[3/7] Running V2 stochastic volatility model ...")
     heston_params = calibrate_heston(log_returns, sigma_daily)
     print(f"  Long-run variance (theta): {heston_params['theta']:.6f}")
     print(f"  Current variance (v0):     {heston_params['v0']:.6f}")
@@ -935,7 +935,7 @@ def main():
     paths_heston = run_heston(current_price, mu_daily, heston_params)
     print(f"  Heston 2yr median: ${np.median(paths_heston[FORECAST_DAYS]):.2f}")
 
-    print(f"\n[4/7] Running V2 jump diffusion model ...")
+    print("\n[4/7] Running V2 jump diffusion model ...")
     jump_params = estimate_jump_params(log_returns, mu_daily, sigma_daily)
     print(f"  Detected {jump_params['n_jumps']} jumps in "
           f"{jump_params['n_years']:.1f} years")
@@ -948,7 +948,7 @@ def main():
     print(f"  Jump diffusion 2yr median: "
           f"${np.median(paths_jd[FORECAST_DAYS]):.2f}")
 
-    print(f"\n[5/7] Fitting Hidden Markov Model for regime detection ...")
+    print("\n[5/7] Fitting Hidden Markov Model for regime detection ...")
     hmm_regimes, hmm_available = fit_hmm_regimes(log_returns)
     if hmm_available:
         print(f"  Calm regime:     "
