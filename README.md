@@ -8,6 +8,7 @@
     <img src="https://github.com/raysteezy/raysteezy-learning/actions/workflows/update-planet-labs-data.yml/badge.svg" alt="Planet Labs Data Status">
   </a>
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python 3.11">
+  <img src="https://img.shields.io/badge/AI-Red" alt="Perplexity">
   <img src="https://img.shields.io/badge/data-automated-green" alt="Automated Data">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="MIT License">
 </p>
