@@ -46,20 +46,18 @@ SCENARIOS = {
 }
 
 
-def fetch_data() -> tuple[pd.Series, pd.Series]:
-    """Fetch PL price history and compute log returns."""
+def fetch_data():
+    """Grab PL price history and compute log returns."""
     stock = yf.Ticker(TICKER)
     hist = stock.history(period="max")
     hist = hist[hist.index >= "2021-01-01"]
-    close = hist["Close"].dropna()
-    log_returns = np.log(close / close.shift(1)).dropna()
-    return close, log_returns
+    prices = hist["Close"].dropna()
+    log_returns = np.log(prices / prices.shift(1)).dropna()
+    return prices, log_returns
 
 
-def run_gbm(current_price: float, mu: float, sigma: float,
-            n_days: int = FORECAST_DAYS,
-            n_sims: int = N_SIMULATIONS) -> np.ndarray:
-    """Run GBM simulation and return price paths."""
+def run_gbm(current_price, mu, sigma, n_days=FORECAST_DAYS, n_sims=N_SIMULATIONS):
+    """Run a basic GBM simulation and return the price paths."""
     Z = np.random.standard_normal((n_days, n_sims))
     drift = (mu - 0.5 * sigma ** 2)
     diffusion = sigma * Z
@@ -68,8 +66,7 @@ def run_gbm(current_price: float, mu: float, sigma: float,
     return current_price * np.exp(log_paths)
 
 
-def run_stress_tests(mu_daily: float, sigma_daily: float,
-                     current_price: float) -> tuple[dict, dict]:
+def run_stress_tests(mu_daily, sigma_daily, current_price):
     """Run GBM under each stress scenario."""
     stress_results = {}
     stress_paths = {}
@@ -80,14 +77,14 @@ def run_stress_tests(mu_daily: float, sigma_daily: float,
         sc_paths = run_gbm(current_price, sc_mu, sc_sigma)
         stress_paths[key] = sc_paths
 
-        sc_terminal = sc_paths[FORECAST_DAYS]
+        final_prices = sc_paths[FORECAST_DAYS]
         stress_results[key] = {
             "name": sc["name"],
-            "median_2yr": round(float(np.median(sc_terminal)), 2),
-            "p10_2yr": round(float(np.percentile(sc_terminal, 10)), 2),
-            "p90_2yr": round(float(np.percentile(sc_terminal, 90)), 2),
+            "median_2yr": round(float(np.median(final_prices)), 2),
+            "p10_2yr": round(float(np.percentile(final_prices, 10)), 2),
+            "p90_2yr": round(float(np.percentile(final_prices, 90)), 2),
             "prob_profit": round(
-                float(np.mean(sc_terminal > current_price) * 100), 1
+                float(np.mean(final_prices > current_price) * 100), 1
             ),
         }
         print(f"  {sc['name']:35s} -> "
@@ -96,20 +93,20 @@ def run_stress_tests(mu_daily: float, sigma_daily: float,
     return stress_results, stress_paths
 
 
-def plot_fan_chart(close: pd.Series, paths: np.ndarray,
-                   current_price: float) -> None:
+def plot_fan_chart(prices, paths, current_price):
     """Fan chart showing GBM percentile bands."""
     plt.style.use("dark_background")
-    forecast_start = close.index[-1]
+    forecast_start = prices.index[-1]
     forecast_dates = pd.bdate_range(
         start=forecast_start, periods=FORECAST_DAYS + 1
     )
 
     fig, ax = plt.subplots(figsize=(14, 7))
 
-    ax.plot(close.index, close.values, color="#4fc3f7",
+    ax.plot(prices.index, prices.values, color="#4fc3f7",
             linewidth=1.2, label="Historical Price")
 
+    # calculate percentile bands for the fan
     pct = np.percentile(paths, [5, 25, 50, 75, 95], axis=1)
     ax.fill_between(forecast_dates, pct[0], pct[4],
                     alpha=0.15, color="#888888", label="90% CI")
@@ -124,6 +121,7 @@ def plot_fan_chart(close: pd.Series, paths: np.ndarray,
                 fontsize=10, color="#FFA500", fontweight="bold",
                 xytext=(-120, 20), textcoords="offset points")
 
+    # mark the 6mo, 1yr, 2yr points on the median line
     for label, day_idx in {"6 Mo": 126, "1 Yr": 252, "2 Yr": 504}.items():
         val = pct[2][day_idx]
         ax.plot(forecast_dates[day_idx], val, "o", color="white",
@@ -150,10 +148,8 @@ def plot_fan_chart(close: pd.Series, paths: np.ndarray,
     print("  Saved: v1_mc_fan_chart.png")
 
 
-def save_results(close: pd.Series, paths: np.ndarray,
-                 current_price: float, mu_daily: float,
-                 sigma_daily: float, log_returns: pd.Series,
-                 stress_results: dict) -> None:
+def save_results(prices, paths, current_price, mu_daily,
+                 sigma_daily, log_returns, stress_results):
     """Save summary JSON and percentile paths CSV."""
     terminal = paths[FORECAST_DAYS]
     var_95 = round(float(np.percentile(terminal, 5)), 2)
@@ -219,9 +215,9 @@ def save_results(close: pd.Series, paths: np.ndarray,
         json.dump(summary, f, indent=2)
     print("  Saved: v1_mc_summary.json")
 
-    # Percentile paths CSV
+    # save percentile paths to CSV
     forecast_dates = pd.bdate_range(
-        start=close.index[-1], periods=FORECAST_DAYS + 1
+        start=prices.index[-1], periods=FORECAST_DAYS + 1
     )
     percentiles = [5, 10, 25, 50, 75, 90, 95]
     pct_paths = np.percentile(paths, percentiles, axis=1)
@@ -234,12 +230,12 @@ def save_results(close: pd.Series, paths: np.ndarray,
     print("  Saved: v1_mc_percentile_paths.csv")
 
 
-def main() -> None:
+def main():
     np.random.seed(RANDOM_SEED)
 
     print(f"[1/4] Fetching {TICKER} price history ...")
-    close, log_returns = fetch_data()
-    current_price = close.iloc[-1]
+    prices, log_returns = fetch_data()
+    current_price = prices.iloc[-1]
     mu_daily = log_returns.mean()
     sigma_daily = log_returns.std()
 
@@ -260,8 +256,8 @@ def main() -> None:
     stress_results, _ = run_stress_tests(mu_daily, sigma_daily, current_price)
 
     print("\n[4/4] Making chart and saving results ...")
-    plot_fan_chart(close, paths, current_price)
-    save_results(close, paths, current_price, mu_daily, sigma_daily,
+    plot_fan_chart(prices, paths, current_price)
+    save_results(prices, paths, current_price, mu_daily, sigma_daily,
                  log_returns, stress_results)
 
     print(f"\nV1 GBM 2yr median: ${np.median(terminal):.2f}")

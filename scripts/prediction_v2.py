@@ -67,8 +67,8 @@ RIDGE_FEATURE_COLS = [
 
 # --- data loading ---
 
-def load_data() -> tuple[pd.DataFrame, dict, dict]:
-    """Fetch PL price history and fundamental metrics from Yahoo Finance."""
+def load_data():
+    """Fetch PL price history and some fundamental metrics from Yahoo."""
     stock = yf.Ticker(TICKER)
     hist = stock.history(period="max").reset_index()
     info = stock.info
@@ -86,31 +86,37 @@ def load_data() -> tuple[pd.DataFrame, dict, dict]:
 
 # --- feature engineering ---
 
-def build_features(hist: pd.DataFrame) -> pd.DataFrame:
+def build_features(hist):
     """Create technical features for the Ridge model."""
     df = hist.copy()
     close = df["Close"]
 
+    # basic returns at different lookbacks
     df["ret_1d"] = close.pct_change(1)
     df["ret_5d"] = close.pct_change(5)
     df["ret_21d"] = close.pct_change(21)
 
+    # moving averages
     df["sma_10"] = close.rolling(10).mean()
     df["sma_50"] = close.rolling(50).mean()
     df["sma_200"] = close.rolling(200).mean()
 
+    # how far price is from the moving averages
     df["price_vs_sma50"] = close / df["sma_50"] - 1
     df["price_vs_sma200"] = close / df["sma_200"] - 1
     df["sma_50_vs_200"] = df["sma_50"] / df["sma_200"] - 1
 
+    # realized volatility
     df["vol_21d"] = df["ret_1d"].rolling(21).std()
     df["vol_63d"] = df["ret_1d"].rolling(63).std()
 
+    # volume features if we have volume data
     if "Volume" in df.columns:
         df["vol_ratio"] = df["Volume"] / df["Volume"].rolling(20).mean()
         df["vol_trend"] = (df["Volume"].rolling(5).mean()
                            / df["Volume"].rolling(20).mean())
 
+    # momentum — what fraction of the last 14 days were positive
     df["momentum_14d"] = df["ret_1d"].rolling(14).apply(
         lambda x: (x > 0).sum() / len(x), raw=True
     )
@@ -121,8 +127,8 @@ def build_features(hist: pd.DataFrame) -> pd.DataFrame:
 
 # --- V1 baseline (for comparison charts) ---
 
-def build_v1_baseline(hist: pd.DataFrame) -> dict:
-    """Refit the V1 linear + polynomial models for side-by-side charts."""
+def build_v1_baseline(hist):
+    """Refit the V1 linear + polynomial models so we can compare."""
     df = hist.copy()
     df["date_ordinal"] = df["Date"].apply(lambda x: x.toordinal())
     X = df["date_ordinal"].values.reshape(-1, 1)
@@ -149,8 +155,8 @@ def build_v1_baseline(hist: pd.DataFrame) -> dict:
 
 # --- ARIMA ---
 
-def build_arima_model(close_prices: pd.Series) -> pm.ARIMA:
-    """Fit ARIMA via auto_arima with automatic differencing."""
+def build_arima_model(close_prices):
+    """Fit ARIMA using auto_arima with automatic differencing."""
     n_diffs = ndiffs(close_prices, alpha=0.05, test="adf", max_d=3)
     return pm.auto_arima(
         close_prices,
@@ -165,14 +171,15 @@ def build_arima_model(close_prices: pd.Series) -> pm.ARIMA:
     )
 
 
-def arima_walk_forward(close_prices: pd.Series,
-                       n_test: int = 63) -> dict:
-    """Walk-forward validation: train on past, predict one step ahead."""
+def arima_walk_forward(close_prices, n_test=63):
+    """Walk-forward: train on the past, predict one step, then move forward."""
     n = len(close_prices)
     train_size = n - n_test
-    actuals, predictions = [], []
+    actuals = []
+    predictions = []
     history = list(close_prices[:train_size])
 
+    # grab the last n_test days for testing
     for i in range(n_test):
         model = pm.auto_arima(
             history, seasonal=False, stepwise=True,
@@ -203,16 +210,17 @@ def arima_walk_forward(close_prices: pd.Series,
 
 # --- Ridge regression ---
 
-def _ridge_feature_cols(df: pd.DataFrame) -> list[str]:
+def _get_ridge_features(df):
+    """Figure out which feature columns are available."""
     cols = list(RIDGE_FEATURE_COLS)
     if "vol_ratio" in df.columns:
         cols.extend(["vol_ratio", "vol_trend"])
     return cols
 
 
-def build_ridge_model(df_features: pd.DataFrame) -> tuple[RidgeCV, StandardScaler, list[str]]:
+def build_ridge_model(df_features):
     """Ridge regression predicting next-day returns from technical features."""
-    feature_cols = _ridge_feature_cols(df_features)
+    feature_cols = _get_ridge_features(df_features)
 
     df = df_features.copy()
     df["target"] = df["Close"].shift(-1) / df["Close"] - 1
@@ -230,10 +238,9 @@ def build_ridge_model(df_features: pd.DataFrame) -> tuple[RidgeCV, StandardScale
     return ridge, scaler, feature_cols
 
 
-def ridge_walk_forward(df_features: pd.DataFrame,
-                       n_test: int = 63) -> dict:
+def ridge_walk_forward(df_features, n_test=63):
     """Walk-forward validation for Ridge on next-day return prediction."""
-    feature_cols = _ridge_feature_cols(df_features)
+    feature_cols = _get_ridge_features(df_features)
 
     df = df_features.copy()
     df["target"] = df["Close"].shift(-1) / df["Close"] - 1
@@ -241,8 +248,10 @@ def ridge_walk_forward(df_features: pd.DataFrame,
 
     n = len(df)
     train_size = n - n_test
-    actuals, predictions = [], []
-    prices_actual, prices_predicted = [], []
+    actuals = []
+    predictions = []
+    prices_actual = []
+    prices_predicted = []
 
     for i in range(n_test):
         train = df.iloc[:train_size + i]
@@ -290,13 +299,12 @@ def ridge_walk_forward(df_features: pd.DataFrame,
 
 # --- bootstrap prediction intervals ---
 
-def bootstrap_forecast(model: pm.ARIMA, close_prices: pd.Series,
-                       n_ahead: int = FORECAST_DAYS,
-                       n_boot: int = 1000) -> dict:
-    """Build prediction intervals via residual bootstrap resampling."""
+def bootstrap_forecast(model, close_prices, n_ahead=FORECAST_DAYS, n_boot=1000):
+    """Build prediction intervals by resampling residuals."""
     residuals = model.resid()
     base_forecast = np.array(model.predict(n_periods=n_ahead))
 
+    # not sure if this is the best way but it works
     boot_forecasts = np.zeros((n_boot, n_ahead))
     for b in range(n_boot):
         boot_resid = np.random.choice(residuals, size=n_ahead, replace=True)
@@ -313,9 +321,7 @@ def bootstrap_forecast(model: pm.ARIMA, close_prices: pd.Series,
 
 # --- charts ---
 
-def plot_main_chart(hist: pd.DataFrame, v1_models: dict,
-                    arima_ci: dict, current_price: float,
-                    last_date) -> None:
+def plot_main_chart(hist, v1_models, arima_ci, current_price, last_date):
     """Main chart: V1 models vs V2 ARIMA with confidence bands."""
     plt.style.use("dark_background")
     hist_dates = pd.to_datetime(hist["Date"])
@@ -333,7 +339,7 @@ def plot_main_chart(hist: pd.DataFrame, v1_models: dict,
                alpha=0.06, color=COLORS["accent"])
     ax.axvline(x=last_date, color=COLORS["muted"], linestyle=":", alpha=0.5)
 
-    # V1 models (faded)
+    # V1 models (faded so they don't distract)
     v1_ordinals = np.array([d.toordinal() for d in future_trading])
     v1_linear = v1_models["linear"].predict(v1_ordinals.reshape(-1, 1))
     v1_poly = np.clip(v1_models["poly_model"](v1_ordinals), 0, None)
@@ -345,7 +351,7 @@ def plot_main_chart(hist: pd.DataFrame, v1_models: dict,
             linewidth=1, linestyle=":", alpha=0.4,
             label="V1 Polynomial (overfits)")
 
-    # V2 ARIMA with CIs
+    # V2 ARIMA with confidence intervals
     arima_pred = arima_ci["forecast"][:FORECAST_DAYS]
     ci_90_lo = arima_ci["ci_90_lower"][:FORECAST_DAYS]
     ci_90_hi = arima_ci["ci_90_upper"][:FORECAST_DAYS]
@@ -412,9 +418,8 @@ def plot_main_chart(hist: pd.DataFrame, v1_models: dict,
     print(f"  Saved: {filepath}")
 
 
-def plot_dashboard(hist: pd.DataFrame, v1_models: dict,
-                   arima_wf: dict, ridge_wf: dict,
-                   arima_model: pm.ARIMA, current_price: float) -> None:
+def plot_dashboard(hist, v1_models, arima_wf, ridge_wf,
+                   arima_model, current_price):
     """4-panel dashboard: walk-forward results, residuals, model comparison."""
     plt.style.use("dark_background")
     fig, axes = plt.subplots(2, 2, figsize=(16, 12),
@@ -540,10 +545,8 @@ def plot_dashboard(hist: pd.DataFrame, v1_models: dict,
 
 # --- output ---
 
-def save_summary(hist: pd.DataFrame, v1_models: dict,
-                 arima_model: pm.ARIMA, arima_wf: dict,
-                 ridge_wf: dict, arima_ci: dict,
-                 fundamentals: dict, current_price: float) -> dict:
+def save_summary(hist, v1_models, arima_model, arima_wf,
+                 ridge_wf, arima_ci, fundamentals, current_price):
     """Save full V2 results to JSON."""
     summary = {
         "ticker": TICKER,
@@ -629,7 +632,7 @@ def save_summary(hist: pd.DataFrame, v1_models: dict,
     return summary
 
 
-def save_predictions_csv(arima_ci: dict, last_date) -> None:
+def save_predictions_csv(arima_ci, last_date):
     """Save ARIMA forecast with confidence intervals to CSV."""
     future_trading = pd.bdate_range(
         start=last_date + timedelta(days=1), periods=FORECAST_DAYS
@@ -654,7 +657,7 @@ def save_predictions_csv(arima_ci: dict, last_date) -> None:
 
 # --- main ---
 
-def main() -> None:
+def main():
     np.random.seed(RANDOM_SEED)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")
@@ -709,14 +712,20 @@ def main() -> None:
         n_ahead=FORECAST_DAYS, n_boot=1000
     )
     fc = arima_ci["forecast"]
-    end_price = float(fc[-1]) if isinstance(fc, np.ndarray) \
-        else float(fc.iloc[-1])
+    if isinstance(fc, np.ndarray):
+        end_price = float(fc[-1])
+    else:
+        end_price = float(fc.iloc[-1])
     lo = arima_ci["ci_90_lower"]
     hi = arima_ci["ci_90_upper"]
-    end_lo = float(lo[-1]) if isinstance(lo, np.ndarray) \
-        else float(lo.iloc[-1])
-    end_hi = float(hi[-1]) if isinstance(hi, np.ndarray) \
-        else float(hi.iloc[-1])
+    if isinstance(lo, np.ndarray):
+        end_lo = float(lo[-1])
+    else:
+        end_lo = float(lo.iloc[-1])
+    if isinstance(hi, np.ndarray):
+        end_hi = float(hi[-1])
+    else:
+        end_hi = float(hi.iloc[-1])
     print(f"  ARIMA 6-mo forecast: ${end_price:.2f}")
     print(f"  90% CI: [${end_lo:.2f}, ${end_hi:.2f}]")
 

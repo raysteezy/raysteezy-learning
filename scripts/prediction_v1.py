@@ -53,22 +53,24 @@ COLORS = {
 }
 
 
-def load_data() -> pd.DataFrame:
+def load_data():
     """Fetch PL's full price history from Yahoo Finance."""
     stock = yf.Ticker(TICKER)
     return stock.history(period="max").reset_index()
 
 
-def build_v1_models(hist: pd.DataFrame) -> dict:
+def build_v1_models(hist):
     """Fit linear and polynomial-3 regression on date ordinals."""
     df = hist.copy()
     df["date_ordinal"] = df["Date"].apply(lambda x: x.toordinal())
     X = df["date_ordinal"].values.reshape(-1, 1)
     y = df["Close"].values
 
+    # fit the linear model
     linear = LinearRegression().fit(X, y)
     y_pred_lin = linear.predict(X)
 
+    # fit a degree-3 polynomial
     poly_coeffs = np.polyfit(df["date_ordinal"].values, y, 3)
     poly_model = np.poly1d(poly_coeffs)
     y_pred_poly = poly_model(df["date_ordinal"].values)
@@ -85,8 +87,7 @@ def build_v1_models(hist: pd.DataFrame) -> dict:
     }
 
 
-def plot_v1_chart(hist: pd.DataFrame, v1_models: dict,
-                  current_price: float, last_date) -> None:
+def plot_v1_chart(hist, v1_models, current_price, last_date):
     """Chart showing both V1 model fits and forecasts."""
     plt.style.use("dark_background")
     hist_dates = pd.to_datetime(hist["Date"])
@@ -100,21 +101,25 @@ def plot_v1_chart(hist: pd.DataFrame, v1_models: dict,
     ax.plot(hist_dates, hist["Close"], color=COLORS["accent"],
             linewidth=1.2, alpha=0.9, label="Historical Price")
 
+    # shade the forecast region
     ax.axvspan(future_trading[0], future_trading[-1],
                alpha=0.06, color=COLORS["accent"])
     ax.axvline(x=last_date, color=COLORS["muted"], linestyle=":", alpha=0.5)
 
+    # linear forecast
     v1_ordinals = np.array([d.toordinal() for d in future_trading])
     v1_linear = v1_models["linear"].predict(v1_ordinals.reshape(-1, 1))
     ax.plot(future_trading, v1_linear, color=COLORS["orange"],
             linewidth=2, linestyle="--",
             label=f"Linear (R²={v1_models['r2_linear']:.3f})")
 
+    # polynomial forecast (clip to avoid negative prices)
     v1_poly = np.clip(v1_models["poly_model"](v1_ordinals), 0, None)
     ax.plot(future_trading, v1_poly, color=COLORS["purple"],
             linewidth=2, linestyle=":",
             label=f"Polynomial deg-3 (R²={v1_models['r2_poly']:.3f})")
 
+    # show the historical fits too (faded)
     hist_ordinals = np.array([d.toordinal() for d in hist_dates])
     ax.plot(hist_dates,
             v1_models["linear"].predict(hist_ordinals.reshape(-1, 1)),
@@ -156,8 +161,7 @@ def plot_v1_chart(hist: pd.DataFrame, v1_models: dict,
     print(f"  Saved: {filepath}")
 
 
-def save_summary(hist: pd.DataFrame, v1_models: dict,
-                 current_price: float) -> dict:
+def save_summary(hist, v1_models, current_price):
     """Save V1 model results to JSON."""
     summary = {
         "ticker": TICKER,
@@ -195,7 +199,7 @@ def save_summary(hist: pd.DataFrame, v1_models: dict,
     return summary
 
 
-def save_predictions_csv(v1_models: dict, last_date) -> None:
+def save_predictions_csv(v1_models, last_date):
     """Save V1 forecast data to CSV."""
     future_trading = pd.bdate_range(
         start=last_date + timedelta(days=1), periods=FORECAST_DAYS
@@ -215,7 +219,7 @@ def save_predictions_csv(v1_models: dict, last_date) -> None:
     print(f"  Saved: {filepath}")
 
 
-def main() -> None:
+def main():
     np.random.seed(RANDOM_SEED)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")

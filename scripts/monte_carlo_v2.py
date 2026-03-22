@@ -56,24 +56,24 @@ MILESTONES = {"6_months": 126, "1_year": 252, "2_years": 504}
 
 # --- data ---
 
-def fetch_data() -> tuple[pd.Series, pd.Series, float, float, float]:
-    """Fetch PL prices and return (close, log_returns, current_price, mu, sigma)."""
+def fetch_data():
+    """Grab PL prices and return everything we need to get started."""
     stock = yf.Ticker(TICKER)
     hist = stock.history(period="max")
     hist = hist[hist.index >= "2021-01-01"]
-    close = hist["Close"].dropna()
-    log_returns = np.log(close / close.shift(1)).dropna()
+    prices = hist["Close"].dropna()
+    log_returns = np.log(prices / prices.shift(1)).dropna()
 
-    current_price = close.iloc[-1]
+    current_price = prices.iloc[-1]
     mu_daily = log_returns.mean()
     sigma_daily = log_returns.std()
 
-    return close, log_returns, float(current_price), float(mu_daily), float(sigma_daily)
+    return prices, log_returns, float(current_price), float(mu_daily), float(sigma_daily)
 
 
 # --- V1 baseline GBM ---
 
-def run_v1_gbm(current_price: float, mu: float, sigma: float) -> np.ndarray:
+def run_v1_gbm(current_price, mu, sigma):
     """Constant-vol GBM for comparison."""
     Z = np.random.standard_normal((FORECAST_DAYS, N_SIMULATIONS))
     drift = (mu - 0.5 * sigma ** 2)
@@ -85,8 +85,8 @@ def run_v1_gbm(current_price: float, mu: float, sigma: float) -> np.ndarray:
 
 # --- Heston stochastic volatility ---
 
-def calibrate_heston(log_returns: pd.Series, sigma_daily: float) -> dict:
-    """Calibrate Heston parameters from historical data."""
+def calibrate_heston(log_returns, sigma_daily):
+    """Figure out the Heston parameters from historical data."""
     realized_var = log_returns.rolling(21).var().dropna()
     theta = float(sigma_daily ** 2)
     v0 = float(realized_var.iloc[-1])
@@ -95,18 +95,22 @@ def calibrate_heston(log_returns: pd.Series, sigma_daily: float) -> dict:
     rho = float(log_returns.corr(
         log_returns.rolling(21).std().pct_change()
     ))
-    rho = max(min(rho, -0.1), -0.9)
+    # clamp rho to a reasonable range
+    if rho > -0.1:
+        rho = -0.1
+    elif rho < -0.9:
+        rho = -0.9
 
     return {"theta": theta, "v0": v0, "kappa": kappa, "xi": xi, "rho": rho}
 
 
-def run_heston(current_price: float, mu: float,
-               params: dict) -> np.ndarray:
-    """Simulate Heston stochastic volatility model."""
-    kappa, theta, xi, rho, v0 = (
-        params["kappa"], params["theta"], params["xi"],
-        params["rho"], params["v0"],
-    )
+def run_heston(current_price, mu, params):
+    """Simulate the Heston stochastic volatility model."""
+    kappa = params["kappa"]
+    theta = params["theta"]
+    xi = params["xi"]
+    rho = params["rho"]
+    v0 = params["v0"]
     dt = 1
 
     paths = np.zeros((FORECAST_DAYS + 1, N_SIMULATIONS))
@@ -134,26 +138,35 @@ def run_heston(current_price: float, mu: float,
 
 # --- Merton jump diffusion ---
 
-def estimate_jump_params(log_returns: pd.Series,
-                         mu: float, sigma: float) -> dict:
-    """Estimate jump parameters from tail behavior."""
+def estimate_jump_params(log_returns, mu, sigma):
+    """Look at the tails to estimate how often big jumps happen."""
     threshold = 3 * sigma
     jumps = log_returns[np.abs(log_returns - mu) > threshold]
     n_jumps = len(jumps)
     n_years = len(log_returns) / 252
 
+    # default values if we don't find enough jumps
+    lam = n_jumps / n_years if n_years > 0 else 2.0
+    if n_jumps > 0:
+        jump_mu = float(jumps.mean())
+    else:
+        jump_mu = 0.0
+    if n_jumps > 1:
+        jump_sigma = float(jumps.std())
+    else:
+        jump_sigma = sigma
+
     return {
-        "lam": n_jumps / n_years if n_years > 0 else 2.0,
-        "jump_mu": float(jumps.mean()) if n_jumps > 0 else 0.0,
-        "jump_sigma": float(jumps.std()) if n_jumps > 1 else sigma,
+        "lam": lam,
+        "jump_mu": jump_mu,
+        "jump_sigma": jump_sigma,
         "n_jumps": n_jumps,
         "n_years": n_years,
     }
 
 
-def run_jump_diffusion(current_price: float, mu: float, sigma: float,
-                       jump_params: dict) -> np.ndarray:
-    """Simulate Merton jump-diffusion model."""
+def run_jump_diffusion(current_price, mu, sigma, jump_params):
+    """Simulate the Merton jump-diffusion model."""
     lam = jump_params["lam"]
     j_mu = jump_params["jump_mu"]
     j_sig = jump_params["jump_sigma"]
@@ -161,6 +174,7 @@ def run_jump_diffusion(current_price: float, mu: float, sigma: float,
     paths = np.zeros((FORECAST_DAYS + 1, N_SIMULATIONS))
     paths[0] = current_price
 
+    # this compensator term keeps the expected return correct
     jump_compensator = lam * (np.exp(j_mu + 0.5 * j_sig ** 2) - 1) / 252
 
     for t in range(FORECAST_DAYS):
@@ -185,8 +199,8 @@ def run_jump_diffusion(current_price: float, mu: float, sigma: float,
 
 # --- HMM regime detection ---
 
-def fit_hmm_regimes(log_returns: pd.Series) -> tuple[dict | None, bool]:
-    """Fit a 2-state Gaussian HMM to detect calm/volatile regimes."""
+def fit_hmm_regimes(log_returns):
+    """Try to fit a 2-state HMM to detect calm vs volatile regimes."""
     try:
         from hmmlearn.hmm import GaussianHMM
 
@@ -201,6 +215,7 @@ def fit_hmm_regimes(log_returns: pd.Series) -> tuple[dict | None, bool]:
         regime_means = hmm.means_.flatten()
         regime_stds = np.sqrt(hmm.covars_.flatten())
 
+        # figure out which regime is the calm one vs the wild one
         calm_idx = np.argmin(regime_stds)
         vol_idx = np.argmax(regime_stds)
 
@@ -227,10 +242,8 @@ def fit_hmm_regimes(log_returns: pd.Series) -> tuple[dict | None, bool]:
         return None, False
 
 
-def build_scenarios(mu_daily: float, sigma_daily: float,
-                    hmm_regimes: dict | None,
-                    hmm_available: bool) -> dict:
-    """Build stress-test scenarios from HMM regimes or V1 fallback."""
+def build_scenarios(mu_daily, sigma_daily, hmm_regimes, hmm_available):
+    """Build stress-test scenarios from HMM regimes (or fall back to V1 multipliers)."""
     if hmm_available:
         calm_mu = hmm_regimes["calm"]["mu_daily"]
         calm_sig = hmm_regimes["calm"]["sigma_daily"]
@@ -275,6 +288,7 @@ def build_scenarios(mu_daily: float, sigma_daily: float,
             },
         }
 
+    # fallback if HMM didn't work
     return {
         "market_crash": {
             "name": "Market Crash (2008-style)",
@@ -309,9 +323,8 @@ def build_scenarios(mu_daily: float, sigma_daily: float,
     }
 
 
-def run_stress_tests(scenarios: dict,
-                     current_price: float) -> tuple[dict, dict]:
-    """Run GBM for each stress scenario."""
+def run_stress_tests(scenarios, current_price):
+    """Run GBM for each stress scenario and collect results."""
     stress_results = {}
     stress_paths = {}
 
@@ -319,11 +332,11 @@ def run_stress_tests(scenarios: dict,
         sc_paths = run_v1_gbm(current_price, sc["mu"], sc["sigma"])
         stress_paths[key] = sc_paths
 
-        sc_terminal = sc_paths[FORECAST_DAYS]
-        sc_median_path = np.median(sc_paths, axis=1)
-        sc_max_dd = float(
-            np.min(sc_median_path
-                   / np.maximum.accumulate(sc_median_path) - 1) * 100
+        final_prices = sc_paths[FORECAST_DAYS]
+        median_path = np.median(sc_paths, axis=1)
+        max_dd = float(
+            np.min(median_path
+                   / np.maximum.accumulate(median_path) - 1) * 100
         )
 
         stress_results[key] = {
@@ -332,13 +345,13 @@ def run_stress_tests(scenarios: dict,
             "source": sc["source"],
             "mu_daily": round(float(sc["mu"]), 6),
             "sigma_daily": round(float(sc["sigma"]), 6),
-            "median_2yr": round(float(np.median(sc_terminal)), 2),
-            "p10_2yr": round(float(np.percentile(sc_terminal, 10)), 2),
-            "p90_2yr": round(float(np.percentile(sc_terminal, 90)), 2),
+            "median_2yr": round(float(np.median(final_prices)), 2),
+            "p10_2yr": round(float(np.percentile(final_prices, 10)), 2),
+            "p90_2yr": round(float(np.percentile(final_prices, 90)), 2),
             "prob_profit": round(
-                float(np.mean(sc_terminal > current_price) * 100), 1
+                float(np.mean(final_prices > current_price) * 100), 1
             ),
-            "max_drawdown_median": round(sc_max_dd, 1),
+            "max_drawdown_median": round(max_dd, 1),
         }
         print(f"  {sc['name']:35s} -> "
               f"Median 2yr: ${stress_results[key]['median_2yr']:.2f}")
@@ -348,33 +361,35 @@ def run_stress_tests(scenarios: dict,
 
 # --- robustness analysis ---
 
-def walk_forward_validation(close: pd.Series, log_returns: pd.Series,
-                            heston_params: dict) -> dict:
+def walk_forward_validation(prices, log_returns, heston_params):
     """Compare GBM vs Heston on rolling 21-day predictions."""
     kappa = heston_params["kappa"]
     theta = heston_params["theta"]
     lookbacks = [63, 126, 252]
-    wf_results = {}
+    results = {}
 
     for lb in lookbacks:
-        errors_gbm, errors_heston = [], []
+        errors_gbm = []
+        errors_heston = []
         n_tests = 0
 
-        for start in range(lb, len(close) - 21, 63):
+        for start in range(lb, len(prices) - 21, 63):
             window = log_returns.iloc[start - lb : start]
             if len(window) < lb:
                 continue
 
             w_mu = window.mean()
             w_sigma = window.std()
-            actual = close.iloc[min(start + 21, len(close) - 1)]
-            start_price = close.iloc[start]
+            actual = prices.iloc[min(start + 21, len(prices) - 1)]
+            start_price = prices.iloc[start]
 
+            # GBM prediction
             pred_gbm = float(
                 start_price * np.exp((w_mu - 0.5 * w_sigma ** 2) * 21)
             )
             errors_gbm.append(np.log(actual / pred_gbm))
 
+            # Heston prediction
             w_var = w_sigma ** 2
             heston_var_21 = w_var + kappa * (theta - w_var) * (21 / 252)
             pred_heston = float(
@@ -386,7 +401,7 @@ def walk_forward_validation(close: pd.Series, log_returns: pd.Series,
         errors_gbm = np.array(errors_gbm)
         errors_heston = np.array(errors_heston)
 
-        wf_results[f"{lb}_day_lookback"] = {
+        results[f"{lb}_day_lookback"] = {
             "gbm": {
                 "mean_error": round(float(np.mean(errors_gbm)), 4),
                 "mae": round(float(np.mean(np.abs(errors_gbm))), 4),
@@ -399,18 +414,19 @@ def walk_forward_validation(close: pd.Series, log_returns: pd.Series,
             },
             "n_tests": n_tests,
         }
-        gbm_rmse = wf_results[f"{lb}_day_lookback"]["gbm"]["rmse"]
-        heston_rmse = wf_results[f"{lb}_day_lookback"]["heston"]["rmse"]
+        gbm_rmse = results[f"{lb}_day_lookback"]["gbm"]["rmse"]
+        heston_rmse = results[f"{lb}_day_lookback"]["heston"]["rmse"]
         print(f"  {lb}-day lookback: GBM RMSE={gbm_rmse:.4f}, "
               f"Heston RMSE={heston_rmse:.4f}  (n={n_tests})")
 
-    return wf_results
+    return results
 
 
-def bootstrap_parameters(log_returns: pd.Series) -> tuple[list, list, list, list]:
-    """Bootstrap CIs for annualized drift and volatility."""
+def bootstrap_parameters(log_returns):
+    """Bootstrap confidence intervals for drift and volatility."""
     lr_array = log_returns.values
-    boot_mus, boot_sigmas = [], []
+    boot_mus = []
+    boot_sigmas = []
 
     for _ in range(BOOTSTRAP_SAMPLES):
         sample = np.random.choice(lr_array, size=len(lr_array), replace=True)
@@ -431,29 +447,28 @@ def bootstrap_parameters(log_returns: pd.Series) -> tuple[list, list, list, list
     return boot_mus, boot_sigmas, mu_ci, sigma_ci
 
 
-def compute_model_stats(all_models: dict[str, np.ndarray],
-                        current_price: float) -> tuple[dict, dict]:
+def compute_model_stats(all_models, current_price):
     """Compute milestone stats and risk metrics for each model."""
     mc_stats = {}
-    for model_name, paths in all_models.items():
-        mc_stats[model_name] = {}
+    for name, paths in all_models.items():
+        mc_stats[name] = {}
         for label, day in MILESTONES.items():
-            terminal_at = paths[day]
-            mc_stats[model_name][label] = {
-                "median": round(float(np.median(terminal_at)), 2),
-                "mean": round(float(np.mean(terminal_at)), 2),
-                "p5": round(float(np.percentile(terminal_at, 5)), 2),
-                "p25": round(float(np.percentile(terminal_at, 25)), 2),
-                "p75": round(float(np.percentile(terminal_at, 75)), 2),
-                "p95": round(float(np.percentile(terminal_at, 95)), 2),
+            prices_at_day = paths[day]
+            mc_stats[name][label] = {
+                "median": round(float(np.median(prices_at_day)), 2),
+                "mean": round(float(np.mean(prices_at_day)), 2),
+                "p5": round(float(np.percentile(prices_at_day, 5)), 2),
+                "p25": round(float(np.percentile(prices_at_day, 25)), 2),
+                "p75": round(float(np.percentile(prices_at_day, 75)), 2),
+                "p95": round(float(np.percentile(prices_at_day, 95)), 2),
             }
 
     risk_metrics = {}
-    for model_name, paths in all_models.items():
+    for name, paths in all_models.items():
         t = paths[FORECAST_DAYS]
         var_95 = round(float(np.percentile(t, 5)), 2)
         var_99 = round(float(np.percentile(t, 1)), 2)
-        risk_metrics[model_name] = {
+        risk_metrics[name] = {
             "var_95": var_95,
             "var_99": var_99,
             "cvar_95": round(float(np.mean(t[t <= var_95])), 2),
@@ -466,9 +481,8 @@ def compute_model_stats(all_models: dict[str, np.ndarray],
     return mc_stats, risk_metrics
 
 
-def run_sensitivity(mu_daily: float, sigma_daily: float,
-                    current_price: float) -> pd.DataFrame:
-    """Parameter sensitivity grid over drift and vol shifts."""
+def run_sensitivity(mu_daily, sigma_daily, current_price):
+    """Quick sensitivity grid over drift and vol shifts."""
     mu_shifts = [-0.50, -0.25, 0.0, 0.25, 0.50]
     sigma_shifts = [-0.30, 0.0, 0.30]
     rows = []
@@ -493,26 +507,26 @@ def run_sensitivity(mu_daily: float, sigma_daily: float,
 
 # --- charts ---
 
-def plot_fan_chart(close: pd.Series, paths_v1: np.ndarray,
-                   paths_heston: np.ndarray, paths_jd: np.ndarray,
-                   current_price: float,
-                   risk_metrics: dict) -> None:
+def plot_fan_chart(prices, paths_v1, paths_heston, paths_jd,
+                   current_price, risk_metrics):
     """Multi-model fan chart comparing V1 GBM, Heston, and jump diffusion."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(14, 7))
 
-    hist_dates = close.index
+    hist_dates = prices.index
     forecast_start = hist_dates[-1]
     forecast_dates = pd.bdate_range(
         start=forecast_start, periods=FORECAST_DAYS + 1
     )
 
+    # V1 GBM in gray so it fades into the background
     pct_v1 = np.percentile(paths_v1, [5, 25, 50, 75, 95], axis=1)
     ax.fill_between(forecast_dates, pct_v1[0], pct_v1[4],
                     alpha=0.08, color="#888888", label="V1 GBM 90% CI")
     ax.plot(forecast_dates, pct_v1[2], "--", color="#888888",
             linewidth=1, alpha=0.5, label="V1 GBM Median")
 
+    # Heston is the main model
     pct_h = np.percentile(paths_heston, [5, 25, 50, 75, 95], axis=1)
     ax.fill_between(forecast_dates, pct_h[0], pct_h[4],
                     alpha=0.12, color="#00d4aa", label="V2 Heston 90% CI")
@@ -521,12 +535,13 @@ def plot_fan_chart(close: pd.Series, paths_v1: np.ndarray,
     ax.plot(forecast_dates, pct_h[2], color="#FFA500",
             linewidth=2, label="V2 Heston Median")
 
+    # jump diffusion median
     pct_jd = np.percentile(paths_jd, [50], axis=1)
     ax.plot(forecast_dates, pct_jd[0], color="#b388ff",
             linewidth=1.5, linestyle="--", alpha=0.8,
             label="V2 Jump Diffusion Median")
 
-    ax.plot(hist_dates, close.values, color="#4fc3f7",
+    ax.plot(hist_dates, prices.values, color="#4fc3f7",
             linewidth=1.2, label="Historical Price")
     ax.axhline(y=current_price, color="white", linestyle=":", alpha=0.3)
 
@@ -535,6 +550,7 @@ def plot_fan_chart(close: pd.Series, paths_v1: np.ndarray,
                 fontsize=10, color="#FFA500", fontweight="bold",
                 xytext=(-120, 20), textcoords="offset points")
 
+    # annotate the milestone points
     for label_name, day_idx in MILESTONES.items():
         nice = (label_name.replace("_", " ").title()
                 .replace("Months", "Mo")
@@ -548,6 +564,7 @@ def plot_fan_chart(close: pd.Series, paths_v1: np.ndarray,
                     fontsize=9, color="#FFA500",
                     xytext=(15, 15), textcoords="offset points")
 
+    # show the VaR line
     var_95_h = risk_metrics["v2_heston"]["var_95"]
     ax.axhline(y=var_95_h, color="#ff6b6b", linestyle="-.",
                alpha=0.4, linewidth=0.8)
@@ -572,15 +589,13 @@ def plot_fan_chart(close: pd.Series, paths_v1: np.ndarray,
     print("  Saved: fan_chart.png")
 
 
-def plot_stress_chart(close: pd.Series, scenarios: dict,
-                      stress_results: dict, stress_paths: dict,
-                      current_price: float,
-                      hmm_available: bool) -> None:
+def plot_stress_chart(prices, scenarios, stress_results, stress_paths,
+                      current_price, hmm_available):
     """Stress-test scenario median paths."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(14, 7))
 
-    forecast_start = close.index[-1]
+    forecast_start = prices.index[-1]
     forecast_dates = pd.bdate_range(
         start=forecast_start, periods=FORECAST_DAYS + 1
     )
@@ -608,8 +623,10 @@ def plot_stress_chart(close: pd.Series, scenarios: dict,
                     fontsize=10, fontweight="bold", color=colors_st[key],
                     xytext=(10, 0), textcoords="offset points")
 
-    hmm_label = ("HMM regime-based" if hmm_available
-                 else "Static multipliers (V1)")
+    if hmm_available:
+        hmm_label = "HMM regime-based"
+    else:
+        hmm_label = "Static multipliers (V1)"
     ax.axhline(y=current_price, color="white", linestyle=":", alpha=0.3)
     ax.set_yscale("log")
     ax.set_title(f"Planet Labs ({TICKER}) — Stress Tests ({hmm_label})",
@@ -627,11 +644,9 @@ def plot_stress_chart(close: pd.Series, scenarios: dict,
     print("  Saved: stress.png")
 
 
-def plot_risk_dashboard(paths_v1: np.ndarray, paths_heston: np.ndarray,
-                        paths_jd: np.ndarray, current_price: float,
-                        boot_mus: list, boot_sigmas: list,
-                        sens_df: pd.DataFrame, mc_stats: dict,
-                        risk_metrics: dict) -> None:
+def plot_risk_dashboard(paths_v1, paths_heston, paths_jd, current_price,
+                        boot_mus, boot_sigmas, sens_df, mc_stats,
+                        risk_metrics):
     """4-panel robustness dashboard."""
     plt.style.use("dark_background")
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
@@ -697,7 +712,10 @@ def plot_risk_dashboard(paths_v1: np.ndarray, paths_heston: np.ndarray,
     for i in range(len(pivot.index)):
         for j in range(len(pivot.columns)):
             val = pivot.values[i, j]
-            color = "black" if val > 20 else "white"
+            if val > 20:
+                color = "black"
+            else:
+                color = "white"
             ax_heat.text(j, i, f"${val:.0f}", ha="center", va="center",
                          fontsize=12, fontweight="bold", color=color)
     plt.colorbar(im, ax=ax_heat, label="Price ($)")
@@ -753,9 +771,10 @@ def plot_risk_dashboard(paths_v1: np.ndarray, paths_heston: np.ndarray,
             cell.set_facecolor("#1565c0")
             cell.set_text_props(color="white", fontweight="bold")
         else:
-            cell.set_facecolor(
-                "#1a1a2e" if r % 2 == 0 else "#16213e"
-            )
+            if r % 2 == 0:
+                cell.set_facecolor("#1a1a2e")
+            else:
+                cell.set_facecolor("#16213e")
             cell.set_text_props(color="white")
 
     fig.suptitle(f"Planet Labs ({TICKER}) — Robustness & Risk "
@@ -775,19 +794,15 @@ def plot_risk_dashboard(paths_v1: np.ndarray, paths_heston: np.ndarray,
 
 # --- output ---
 
-def save_results(close: pd.Series, log_returns: pd.Series,
-                 mu_daily: float, sigma_daily: float,
-                 current_price: float, heston_params: dict,
-                 jump_params: dict, hmm_regimes: dict | None,
-                 hmm_available: bool, mc_stats: dict,
-                 risk_metrics: dict, stress_results: dict,
-                 wf_results: dict, mu_ci: list, sigma_ci: list,
-                 paths_heston: np.ndarray,
-                 stress_paths: dict, sens_df: pd.DataFrame) -> None:
-    """Save all JSON and CSV outputs."""
+def save_results(prices, log_returns, mu_daily, sigma_daily,
+                 current_price, heston_params, jump_params,
+                 hmm_regimes, hmm_available, mc_stats,
+                 risk_metrics, stress_results, wf_results,
+                 mu_ci, sigma_ci, paths_heston, stress_paths, sens_df):
+    """Save all the JSON and CSV outputs."""
     stock = yf.Ticker(TICKER)
     forecast_dates = pd.bdate_range(
-        start=close.index[-1], periods=FORECAST_DAYS + 1
+        start=prices.index[-1], periods=FORECAST_DAYS + 1
     )
 
     summary = {
@@ -890,11 +905,11 @@ def save_results(close: pd.Series, log_returns: pd.Series,
 
 # --- main ---
 
-def main() -> None:
+def main():
     np.random.seed(RANDOM_SEED)
 
     print(f"[1/7] Fetching {TICKER} price history ...")
-    close, log_returns, current_price, mu_daily, sigma_daily = fetch_data()
+    prices, log_returns, current_price, mu_daily, sigma_daily = fetch_data()
     mu_annual = mu_daily * 252
     sigma_annual = sigma_daily * np.sqrt(252)
 
@@ -952,7 +967,7 @@ def main() -> None:
     stress_results, stress_paths = run_stress_tests(scenarios, current_price)
 
     print("\n[6/7] Robustness analysis ...")
-    wf_results = walk_forward_validation(close, log_returns, heston_params)
+    wf_results = walk_forward_validation(prices, log_returns, heston_params)
 
     print("\n  Bootstrap confidence intervals ...")
     boot_mus, boot_sigmas, mu_ci, sigma_ci = bootstrap_parameters(log_returns)
@@ -968,15 +983,15 @@ def main() -> None:
     sens_df = run_sensitivity(mu_daily, sigma_daily, current_price)
 
     print("\n[7/7] Making charts ...")
-    plot_fan_chart(close, paths_v1, paths_heston, paths_jd,
+    plot_fan_chart(prices, paths_v1, paths_heston, paths_jd,
                    current_price, risk_metrics)
-    plot_stress_chart(close, scenarios, stress_results, stress_paths,
+    plot_stress_chart(prices, scenarios, stress_results, stress_paths,
                       current_price, hmm_available)
     plot_risk_dashboard(paths_v1, paths_heston, paths_jd, current_price,
                         boot_mus, boot_sigmas, sens_df, mc_stats,
                         risk_metrics)
 
-    save_results(close, log_returns, mu_daily, sigma_daily,
+    save_results(prices, log_returns, mu_daily, sigma_daily,
                  current_price, heston_params, jump_params,
                  hmm_regimes, hmm_available, mc_stats, risk_metrics,
                  stress_results, wf_results, mu_ci, sigma_ci,

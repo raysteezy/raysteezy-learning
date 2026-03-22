@@ -21,7 +21,7 @@ TICKER = "PL"
 OUTPUT_DIR = os.path.join("data", "planet-labs")
 
 
-def fetch_quote(stock: yf.Ticker) -> dict:
+def fetch_quote(stock):
     """Pull current stock quote and key financial metrics."""
     info = stock.info
     return {
@@ -65,32 +65,32 @@ def fetch_quote(stock: yf.Ticker) -> dict:
     }
 
 
-def fetch_dataframe(df_raw: pd.DataFrame | None, label: str) -> pd.DataFrame | None:
-    """Transpose a yfinance financial statement so rows = quarters."""
-    if df_raw is None or df_raw.empty:
+def fetch_dataframe(raw_df, label):
+    """Flip a yfinance financial statement so rows = quarters."""
+    if raw_df is None or raw_df.empty:
         print(f"  No {label} data available")
         return None
-    df = df_raw.T
+    df = raw_df.T
     df.index.name = "date"
     df = df.reset_index()
     df["date"] = df["date"].astype(str)
     return df
 
 
-def save_json(data: dict, filename: str) -> None:
+def save_json(data, filename):
     filepath = os.path.join(OUTPUT_DIR, filename)
     with open(filepath, "w") as f:
         json.dump(data, f, indent=2, default=str)
     print(f"  Saved: {filepath}")
 
 
-def save_csv(df: pd.DataFrame, filename: str) -> None:
+def save_csv(df, filename):
     filepath = os.path.join(OUTPUT_DIR, filename)
     df.to_csv(filepath, index=False)
     print(f"  Saved: {filepath}")
 
 
-def main() -> None:
+def main():
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"{'=' * 60}")
     print(f"  Planet Labs (PL) — Financial Data Collector")
@@ -100,6 +100,7 @@ def main() -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     stock = yf.Ticker(TICKER)
 
+    # grab the quote data first
     print("\n[1/5] Quote & key metrics...")
     quote = fetch_quote(stock)
     save_json(quote, "quote.json")
