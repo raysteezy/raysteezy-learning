@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Planet Labs (PL) — Monte Carlo Simulation V1 (Baseline)
-========================================================
+(PL) — Monte Carlo Simulation V1 (Baseline)
 My first Monte Carlo simulation. Uses standard Geometric Brownian
 Motion (GBM) with constant drift and volatility. The stress tests
 are just made-up multipliers — not based on real market data.
@@ -68,10 +67,7 @@ print(f"  Trading days  : {len(log_returns)}")
 print(f"  Daily mu/sigma: {mu_daily:.6f} / {sigma_daily:.6f}")
 print(f"  Annual mu/sigma: {mu_annual:.2%} / {sigma_annual:.2%}")
 
-
-# =====================================================================
 # STEP 2: Run GBM Simulation
-# =====================================================================
 
 print(f"\n[2/4] Running constant-vol GBM ({N_SIMULATIONS:,} paths) ...")
 
@@ -90,10 +86,7 @@ print(f"  2yr median: ${np.median(terminal):.2f}")
 print(f"  2yr mean:   ${np.mean(terminal):.2f}")
 print(f"  P(Profit):  {np.mean(terminal > current_price) * 100:.1f}%")
 
-
-# =====================================================================
 # STEP 3: Stress Tests (V1 — static multipliers)
-# =====================================================================
 
 print("\n[3/4] Running V1 stress-test scenarios (static multipliers) ...")
 
@@ -152,10 +145,7 @@ for key, sc in SCENARIOS.items():
     print(f"  {sc['name']:35s} -> "
           f"Median: ${stress_results[key]['median_2yr']:.2f}")
 
-
-# =====================================================================
 # STEP 4: Chart and Save
-# =====================================================================
 
 print("\n[4/4] Making chart and saving results ...")
 plt.style.use("dark_background")
