@@ -3,7 +3,7 @@
   "company": "Planet Labs PBC",
   "version": "v2 \u2014 ARIMA + Ridge + walk-forward validation",
   "current_price": 33.83,
-  "run_date": "2026-03-22 01:49:54 UTC",
+  "run_date": "2026-03-23 07:14:01 UTC",
   "training_days": 1232,
   "v1_baseline": {
     "note": "Kept for comparison \u2014 no out-of-sample validation",
@@ -28,10 +28,10 @@
       "aic": 1499.28,
       "walk_forward_validation": {
         "test_days": 63,
-        "mae": 1.14,
+        "mae": 1.16,
         "rmse": 1.57,
-        "r2_oos": 0.703,
-        "directional_accuracy_pct": 45.2
+        "r2_oos": 0.7013,
+        "directional_accuracy_pct": 41.9
       },
       "forecast_6mo": {
         "point": 36.35,

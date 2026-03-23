@@ -1,0 +1,28 @@
+{
+  "ticker": "PL",
+  "company": "Planet Labs PBC",
+  "version": "v1 \u2014 baseline (linear + polynomial)",
+  "grade": "C+",
+  "current_price": 33.83,
+  "run_date": "2026-03-23 07:02:46 UTC",
+  "training_days": 1232,
+  "models": {
+    "linear_regression": {
+      "r2_train": 0.0356,
+      "mae_train": 3.7,
+      "grade": "Poor \u2014 barely explains any price movement"
+    },
+    "polynomial_deg3": {
+      "r2_train": 0.853,
+      "mae_train": 1.51,
+      "grade": "Overfits \u2014 high training R\u00b2 but unreliable forecasts"
+    }
+  },
+  "problems": [
+    "R\u00b2 computed on training data (no out-of-sample testing)",
+    "Only used date as input \u2014 no volume, returns, or fundamentals",
+    "No confidence intervals \u2014 just single-number predictions",
+    "Polynomial extrapolation goes to infinity past training data"
+  ],
+  "disclaimer": "Educational model only. Not financial advice."
+}

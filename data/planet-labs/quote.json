@@ -1,7 +1,7 @@
 {
   "ticker": "PL",
   "company_name": "Planet Labs PBC",
-  "last_updated": "2026-03-22 01:33:38 UTC",
+  "last_updated": "2026-03-23 07:02:42 UTC",
   "price": 33.83,
   "previous_close": 26.96,
   "market_cap": 11539076096,
@@ -17,7 +17,7 @@
   "50_day_avg": 25.0542,
   "200_day_avg": 14.2433,
   "volume": 62961486,
-  "avg_volume": 12643339,
+  "avg_volume": 12554915,
   "shares_outstanding": 317596228,
   "float_shares": 261802916,
   "revenue_ttm": 307727008,
