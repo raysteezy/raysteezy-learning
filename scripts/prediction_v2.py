@@ -95,43 +95,36 @@ def build_v1_baseline(hist):
 
 
 def build_arima_model(close_prices):
-    """
-    Fit non-seasonal ARIMA and SARIMAX(m=5), pick lower AIC.
-    Uses method='powell' and max_p/max_q=7 for wider search.
-    """
+    """Fit ARIMA via auto_arima. Keeps it simple — no SARIMAX to avoid crashes."""
     import pmdarima as pm
     from pmdarima.arima import ndiffs
 
-    d = ndiffs(close_prices, alpha=0.05, test="adf", max_d=3)
-    common = dict(stepwise=True, suppress_warnings=False, error_action="ignore",
-                  max_p=7, max_q=7, max_order=14, method="powell", trace=False)
-
-    arima = pm.auto_arima(close_prices, d=d, seasonal=False, **common)
-    try:
-        sarimax = pm.auto_arima(close_prices, d=d, seasonal=True, m=5, **common)
-        model = sarimax if sarimax.aic() < arima.aic() else arima
-        print(f"  ARIMA AIC={arima.aic():.2f}  SARIMAX AIC={sarimax.aic():.2f}")
-    except Exception:
-        model = arima
-        print(f"  SARIMAX failed, using ARIMA AIC={arima.aic():.2f}")
+    vals = close_prices.values  # plain numpy — no pandas index issues
+    d = ndiffs(vals, alpha=0.05, test="adf", max_d=3)
+    model = pm.auto_arima(vals, d=d, seasonal=False, stepwise=True,
+                          error_action="ignore", suppress_warnings=True,
+                          max_p=5, max_q=5, trace=False)
     return model
 
 
 def arima_walk_forward(close_prices, n_test=30):
-    """Walk-forward using predict+update (no refit) — fast and accurate."""
+    """Walk-forward: fit once, predict+update one day at a time."""
     import pmdarima as pm
     from pmdarima.arima import ndiffs
 
-    train = close_prices.iloc[:-n_test]
+    vals = close_prices.values  # plain numpy array
+    train = vals[:-n_test]
     d = ndiffs(train, alpha=0.05, test="adf", max_d=3)
     model = pm.auto_arima(train, d=d, seasonal=False, stepwise=True,
-                          suppress_warnings=False, error_action="ignore",
-                          max_p=7, max_q=7, max_order=14, method="powell")
+                          error_action="ignore", suppress_warnings=True,
+                          max_p=5, max_q=5)
 
     actuals, preds = [], []
     for i in range(n_test):
-        preds.append(float(model.predict(n_periods=1).iloc[0]))
-        actual = close_prices.iloc[len(train) + i]
+        # predict returns numpy array when input was numpy
+        pred = float(model.predict(n_periods=1)[0])
+        actual = float(vals[len(train) + i])
+        preds.append(pred)
         actuals.append(actual)
         model.update([actual])
 
@@ -196,8 +189,8 @@ def ridge_walk_forward(df_features, n_test=63):
 
 def bootstrap_forecast(model, n_ahead=FORECAST_DAYS, n_boot=1000):
     """Prediction intervals via bootstrap-resampled residuals."""
-    residuals = model.resid()
-    base = np.array(model.predict(n_periods=n_ahead).values)
+    residuals = np.array(model.resid())  # force numpy
+    base = np.array(model.predict(n_periods=n_ahead))  # force numpy
     boots = np.array([base + np.cumsum(np.random.choice(residuals, n_ahead, replace=True)) * 0.3
                       for _ in range(n_boot)])
     return {
@@ -288,9 +281,9 @@ def main():
     v1 = build_v1_baseline(hist)
     print(f"  Linear R²={v1['r2_linear']:.4f}  Poly R²={v1['r2_poly']:.4f}")
 
-    print("\n[4/7] Fitting ARIMA/SARIMAX...")
+    print("\n[4/7] Fitting ARIMA...")
     arima_model = build_arima_model(hist["Close"])
-    print(f"  Best order: {arima_model.order}, AIC: {arima_model.aic():.2f}")
+    print(f"  Order: {arima_model.order}, AIC: {arima_model.aic():.2f}")
 
     print("\n[5/7] ARIMA walk-forward (predict+update)...")
     arima_wf = arima_walk_forward(hist["Close"], n_test=30)
