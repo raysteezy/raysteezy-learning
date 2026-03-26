@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install yfinance pandas numpy scipy matplotlib scikit-learn pmdarima hmmlearn
+          pip install yfinance pandas numpy scipy scikit-learn pmdarima hmmlearn
 
       - name: Fetch Planet Labs financial data
         run: python scripts/fetch_planet_labs_financials.py
