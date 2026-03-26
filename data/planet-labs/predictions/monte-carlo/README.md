@@ -77,7 +77,7 @@ V2 is more pessimistic because it's more realistic about tail risk.
 
 ## Charts
 
-All charts are now on the [Interactive Dashboard](https://www.perplexity.ai/computer/a/pl-interactive-dashboard-0hOUJPMvQQSMfkP686GI_Q).
+All charts are now on the [Interactive Dashboard](https://raysteezy.github.io/raysteezy-learning/).
 
 ## Files
 
