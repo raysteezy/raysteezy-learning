@@ -103,7 +103,7 @@ The V2 models are more pessimistic because they're more realistic about tail ris
 
 ### V2 Charts
 
-**[Interactive Dashboard](https://www.perplexity.ai/computer/a/pl-interactive-dashboard-0hOUJPMvQQSMfkP686GI_Q)** — all charts are now interactive. Hover, zoom, and explore the data.
+**[Interactive Dashboard](https://raysteezy.github.io/raysteezy-learning/)** — all charts are now interactive. Hover, zoom, and explore the data.
 
 ### V2 Files
 
