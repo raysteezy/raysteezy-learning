@@ -60,7 +60,7 @@ Rebuilt everything. Added proper time-series models, walk-forward validation, an
 
 ## Charts
 
-All charts are now on the [Interactive Dashboard](https://www.perplexity.ai/computer/a/pl-interactive-dashboard-0hOUJPMvQQSMfkP686GI_Q).
+All charts are now on the [Interactive Dashboard](https://raysteezy.github.io/raysteezy-learning/).
 
 ## Files
 
