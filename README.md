@@ -103,7 +103,7 @@ The V2 models are more pessimistic because they're more realistic about tail ris
 
 ### V2 Charts
 
-![PL Price Demo](assets/demo.gif)
+![PL Price Demo](data/planet-labs/demo.gif)
 
 ### V2 Files
 
