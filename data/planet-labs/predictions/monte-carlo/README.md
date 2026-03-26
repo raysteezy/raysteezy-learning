@@ -77,7 +77,7 @@ V2 is more pessimistic because it's more realistic about tail risk.
 
 ## Charts
 
-All charts are now on the [Interactive Dashboard](https://raysteezy.github.io/raysteezy-learning/).
+See the animated demo in the [main README](../../../README.md).
 
 ## Files
 
