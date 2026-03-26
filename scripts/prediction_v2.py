@@ -130,7 +130,7 @@ def arima_walk_forward(close_prices, n_test=30):
 
     actuals, preds = [], []
     for i in range(n_test):
-        preds.append(model.predict(n_periods=1)[0])
+        preds.append(float(model.predict(n_periods=1).iloc[0]))
         actual = close_prices.iloc[len(train) + i]
         actuals.append(actual)
         model.update([actual])
@@ -197,7 +197,7 @@ def ridge_walk_forward(df_features, n_test=63):
 def bootstrap_forecast(model, n_ahead=FORECAST_DAYS, n_boot=1000):
     """Prediction intervals via bootstrap-resampled residuals."""
     residuals = model.resid()
-    base = np.array(model.predict(n_periods=n_ahead))
+    base = np.array(model.predict(n_periods=n_ahead).values)
     boots = np.array([base + np.cumsum(np.random.choice(residuals, n_ahead, replace=True)) * 0.3
                       for _ in range(n_boot)])
     return {
