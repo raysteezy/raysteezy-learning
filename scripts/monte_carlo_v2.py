@@ -214,9 +214,11 @@ def compute_model_stats(models, price):
         t = p[FORECAST_DAYS]
         v95 = round(float(np.percentile(t, 5)), 2)
         v99 = round(float(np.percentile(t, 1)), 2)
+        below_95 = t[t <= v95]
+        below_99 = t[t <= v99]
         risk[n] = {"var_95": v95, "var_99": v99,
-                   "cvar_95": round(float(np.mean(t[t <= v95])), 2),
-                   "cvar_99": round(float(np.mean(t[t <= v99])), 2),
+                   "cvar_95": round(float(np.mean(below_95)), 2) if len(below_95) > 0 else v95,
+                   "cvar_99": round(float(np.mean(below_99)), 2) if len(below_99) > 0 else v99,
                    "prob_profit": round(float(np.mean(t > price) * 100), 1),
                    "prob_double": round(float(np.mean(t > 2 * price) * 100), 1),
                    "prob_below_10": round(float(np.mean(t < 10) * 100), 1)}
