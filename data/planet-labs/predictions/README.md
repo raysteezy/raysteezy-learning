@@ -60,10 +60,7 @@ Rebuilt everything. Added proper time-series models, walk-forward validation, an
 
 ## Charts
 
-| File | Shows |
-|------|-------|
-| `forecast.png` | V1 vs V2 side-by-side |
-| `dashboard.png` | Walk-forward validation + scorecard |
+All charts are now on the [Interactive Dashboard](https://www.perplexity.ai/computer/a/pl-interactive-dashboard-0hOUJPMvQQSMfkP686GI_Q).
 
 ## Files
 

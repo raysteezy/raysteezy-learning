@@ -103,13 +103,7 @@ The V2 models are more pessimistic because they're more realistic about tail ris
 
 ### V2 Charts
 
-| Chart | What It Shows |
-|-------|--------------|
-| [Forecast](data/planet-labs/predictions/forecast.png) | V1 vs V2 prediction side-by-side |
-| [Dashboard](data/planet-labs/predictions/dashboard.png) | Walk-forward validation + scorecard |
-| [Fan Chart](data/planet-labs/predictions/monte-carlo/fan_chart.png) | GBM vs Heston vs Jump Diffusion |
-| [Stress Tests](data/planet-labs/predictions/monte-carlo/stress.png) | 5 HMM scenarios from crash to bull |
-| [Risk Analysis](data/planet-labs/predictions/monte-carlo/risk.png) | Distributions, sensitivity, risk comparison |
+**[Interactive Dashboard](https://www.perplexity.ai/computer/a/pl-interactive-dashboard-0hOUJPMvQQSMfkP686GI_Q)** — all charts are now interactive. Hover, zoom, and explore the data.
 
 ### V2 Files
 
@@ -140,17 +134,12 @@ raysteezy-learning/
 │           ├── README.md                #   V1 vs V2 model comparison
 │           ├── results.json             #   V2 model results
 │           ├── prices.csv               #   V2 forecasts with CIs
-│           ├── forecast.png             #   V1 vs V2 prediction chart
-│           ├── dashboard.png            #   Walk-forward validation dashboard
 │           └── monte-carlo/
 │               ├── README.md            #   MC methodology
 │               ├── results.json         #   Full V1 vs V2 MC comparison
 │               ├── paths.csv            #   Heston percentile paths
 │               ├── stress_paths.csv     #   Stress scenario paths
-│               ├── sensitivity.csv      #   Parameter sensitivity grid
-│               ├── fan_chart.png        #   V1 vs V2 fan chart
-│               ├── stress.png           #   HMM stress scenarios
-│               └── risk.png             #   Risk analysis dashboard
+│               └── sensitivity.csv      #   Parameter sensitivity grid
 ├── scripts/
 │   ├── fetch_planet_labs_financials.py  # Grabs financial data from Yahoo Finance
 │   ├── prediction_v1.py                # V1 baseline (linear + polynomial)
