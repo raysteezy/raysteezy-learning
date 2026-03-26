@@ -60,7 +60,7 @@ Rebuilt everything. Added proper time-series models, walk-forward validation, an
 
 ## Charts
 
-All charts are now on the [Interactive Dashboard](https://raysteezy.github.io/raysteezy-learning/).
+See the animated demo in the [main README](../../../README.md).
 
 ## Files
 
