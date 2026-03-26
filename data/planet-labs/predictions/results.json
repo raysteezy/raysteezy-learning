@@ -2,78 +2,75 @@
   "ticker": "PL",
   "company": "Planet Labs PBC",
   "version": "v2 \u2014 ARIMA + Ridge + walk-forward validation",
-  "current_price": 33.83,
-  "run_date": "2026-03-23 07:14:01 UTC",
-  "training_days": 1232,
+  "current_price": 35.37,
+  "run_date": "2026-03-26 08:33:36 UTC",
+  "training_days": 1235,
   "v1_baseline": {
     "note": "Kept for comparison \u2014 no out-of-sample validation",
     "linear_regression": {
-      "r2_train": 0.0356,
-      "mae_train": 3.7,
-      "grade": "Poor \u2014 barely explains any price movement"
+      "r2_train": 0.0414,
+      "mae_train": 3.8
     },
     "polynomial_deg3": {
-      "r2_train": 0.853,
-      "mae_train": 1.51,
-      "grade": "Overfits \u2014 high training R\u00b2 but bad forecasts"
+      "r2_train": 0.8531,
+      "mae_train": 1.55
     }
   },
   "v2_models": {
     "arima": {
       "order": [
+        4,
         1,
-        1,
-        1
+        4
       ],
-      "aic": 1499.28,
-      "walk_forward_validation": {
-        "test_days": 63,
-        "mae": 1.16,
-        "rmse": 1.57,
-        "r2_oos": 0.7013,
-        "directional_accuracy_pct": 41.9
+      "aic": 1532.27,
+      "walk_forward": {
+        "test_days": 30,
+        "mae": 1.28,
+        "rmse": 1.85,
+        "r2_oos": 0.7048,
+        "directional_accuracy_pct": 31.0
       },
       "forecast_6mo": {
-        "point": 36.35,
+        "point": 38.32,
         "ci_90": [
-          34.22,
-          39.79
+          36.13,
+          41.99
         ],
         "ci_50": [
-          35.44,
-          37.69
+          37.41,
+          39.69
         ]
       }
     },
     "ridge_regression": {
       "features_used": [
-        "1d/5d/21d returns",
+        "returns",
         "SMA crossovers",
-        "21d/63d volatility",
-        "volume ratio",
+        "volatility",
+        "volume",
         "momentum"
       ],
-      "walk_forward_validation": {
+      "walk_forward": {
         "test_days": 63,
-        "mae": 1.11,
-        "rmse": 1.47,
-        "r2_oos": 0.7366,
-        "directional_accuracy_pct": 50.8
+        "mae": 1.14,
+        "rmse": 1.53,
+        "r2_oos": 0.7868,
+        "directional_accuracy_pct": 47.6
       }
     }
   },
   "fundamentals_snapshot": {
-    "price_to_sales": 37.4978,
+    "price_to_sales": 39.2047,
     "revenue_growth": 0.411,
     "gross_margin": 0.5615,
-    "operating_margin": -0.2995
+    "operating_margin": -0.3043
   },
   "improvements_over_v1": [
-    "ARIMA handles autocorrelation (V1 ignored it)",
-    "Ridge uses multiple features instead of just date",
-    "All metrics are out-of-sample (walk-forward validation)",
-    "Prediction intervals show uncertainty range",
-    "Regularization prevents overfitting"
+    "ARIMA handles autocorrelation",
+    "Ridge uses multiple features",
+    "All metrics are out-of-sample",
+    "Prediction intervals show uncertainty"
   ],
   "disclaimer": "Educational model only. Not financial advice."
 }
