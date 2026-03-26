@@ -191,28 +191,6 @@ I picked Planet Labs because they're a space company that's publicly traded, whi
 | pmdarima | Auto-ARIMA model selection |
 | hmmlearn | Hidden Markov Model for regime detection |
 
-## How to Run This Yourself
-
-```bash
-# Clone the repo
-git clone https://github.com/raysteezy/raysteezy-learning.git
-cd raysteezy-learning
-
-# Install the Python packages you need
-pip install yfinance pandas numpy scipy matplotlib scikit-learn pmdarima hmmlearn
-
-# Run the data collector
-python scripts/fetch_planet_labs_financials.py
-
-# Run V1 models (baseline)
-python scripts/prediction_v1.py
-python scripts/monte_carlo_v1.py
-
-# Run V2 models (upgraded)
-python scripts/prediction_v2.py
-python scripts/monte_carlo_v2.py
-```
-
 ## Legal
 
 > **This repository is for educational and academic purposes only. Nothing herein constitutes financial advice, investment recommendations, or a solicitation to buy or sell any security.** All models, simulations, and predictions are statistical exercises based on historical data with significant limitations. Past performance does not guarantee future results.
