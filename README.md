@@ -103,7 +103,7 @@ The V2 models are more pessimistic because they're more realistic about tail ris
 
 ### V2 Charts
 
-**[Interactive Dashboard](https://raysteezy.github.io/raysteezy-learning/)** — all charts are now interactive. Hover, zoom, and explore the data.
+![PL Price Demo](assets/demo.gif)
 
 ### V2 Files
 
