@@ -2,18 +2,18 @@
   "ticker": "PL",
   "company": "Planet Labs PBC",
   "version": "v2 \u2014 ARIMA + Ridge + walk-forward validation",
-  "current_price": 41.62,
-  "run_date": "2026-05-18 09:48:59 UTC",
-  "training_days": 1271,
+  "current_price": 44.35,
+  "run_date": "2026-05-25 09:55:28 UTC",
+  "training_days": 1276,
   "v1_baseline": {
     "note": "Kept for comparison \u2014 no out-of-sample validation",
     "linear_regression": {
-      "r2_train": 0.1144,
-      "mae_train": 4.97
+      "r2_train": 0.1247,
+      "mae_train": 5.15
     },
     "polynomial_deg3": {
-      "r2_train": 0.8803,
-      "mae_train": 1.94
+      "r2_train": 0.8838,
+      "mae_train": 2.01
     }
   },
   "v2_models": {
@@ -21,25 +21,25 @@
       "order": [
         5,
         1,
-        4
+        5
       ],
-      "aic": 2167.52,
+      "aic": 2186.39,
       "walk_forward": {
         "test_days": 30,
-        "mae": 1.55,
-        "rmse": 2.04,
-        "r2_oos": 0.3849,
+        "mae": 1.54,
+        "rmse": 2.08,
+        "r2_oos": 0.5123,
         "directional_accuracy_pct": 31.0
       },
       "forecast_6mo": {
-        "point": 43.4,
+        "point": 47.11,
         "ci_90": [
-          40.63,
-          47.44
+          44.24,
+          51.17
         ],
         "ci_50": [
-          42.2,
-          45.05
+          45.79,
+          48.7
         ]
       }
     },
@@ -53,15 +53,15 @@
       ],
       "walk_forward": {
         "test_days": 63,
-        "mae": 1.56,
-        "rmse": 2.06,
-        "r2_oos": 0.8831,
+        "mae": 1.54,
+        "rmse": 2.05,
+        "r2_oos": 0.8875,
         "directional_accuracy_pct": 49.2
       }
     }
   },
   "fundamentals_snapshot": {
-    "price_to_sales": 48.2021,
+    "price_to_sales": 51.3638,
     "revenue_growth": 0.411,
     "gross_margin": 0.5615,
     "operating_margin": -0.3043
