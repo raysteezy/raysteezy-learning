@@ -3,18 +3,18 @@
   "company": "Planet Labs PBC",
   "version": "v1 \u2014 baseline (linear + polynomial)",
   "grade": "C+",
-  "current_price": 44.35,
-  "run_date": "2026-05-25 09:54:54 UTC",
-  "training_days": 1276,
+  "current_price": 51.14,
+  "run_date": "2026-06-01 11:19:26 UTC",
+  "training_days": 1280,
   "models": {
     "linear_regression": {
-      "r2_train": 0.1247,
-      "mae_train": 5.15,
+      "r2_train": 0.1327,
+      "mae_train": 5.34,
       "grade": "Poor \u2014 barely explains any price movement"
     },
     "polynomial_deg3": {
-      "r2_train": 0.8838,
-      "mae_train": 2.01,
+      "r2_train": 0.8813,
+      "mae_train": 2.11,
       "grade": "Overfits \u2014 high training R\u00b2 but unreliable forecasts"
     }
   },
