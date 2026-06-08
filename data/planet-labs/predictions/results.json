@@ -2,44 +2,44 @@
   "ticker": "PL",
   "company": "Planet Labs PBC",
   "version": "v2 \u2014 ARIMA + Ridge + walk-forward validation",
-  "current_price": 51.14,
-  "run_date": "2026-06-01 11:20:02 UTC",
-  "training_days": 1280,
+  "current_price": 32.22,
+  "run_date": "2026-06-08 10:24:39 UTC",
+  "training_days": 1285,
   "v1_baseline": {
     "note": "Kept for comparison \u2014 no out-of-sample validation",
     "linear_regression": {
-      "r2_train": 0.1327,
-      "mae_train": 5.34
+      "r2_train": 0.1425,
+      "mae_train": 5.52
     },
     "polynomial_deg3": {
-      "r2_train": 0.8813,
-      "mae_train": 2.11
+      "r2_train": 0.885,
+      "mae_train": 2.16
     }
   },
   "v2_models": {
     "arima": {
       "order": [
-        5,
         1,
-        4
+        1,
+        1
       ],
-      "aic": 2279.97,
+      "aic": 2724.33,
       "walk_forward": {
         "test_days": 30,
-        "mae": 1.59,
-        "rmse": 2.02,
-        "r2_oos": 0.8099,
-        "directional_accuracy_pct": 34.5
+        "mae": 2.14,
+        "rmse": 3.11,
+        "r2_oos": 0.6273,
+        "directional_accuracy_pct": 27.6
       },
       "forecast_6mo": {
-        "point": 55.56,
+        "point": 32.46,
         "ci_90": [
-          52.63,
-          59.64
+          29.18,
+          37.62
         ],
         "ci_50": [
-          54.37,
-          57.11
+          31.78,
+          34.95
         ]
       }
     },
@@ -53,18 +53,18 @@
       ],
       "walk_forward": {
         "test_days": 63,
-        "mae": 1.59,
-        "rmse": 2.11,
-        "r2_oos": 0.9076,
-        "directional_accuracy_pct": 50.8
+        "mae": 1.87,
+        "rmse": 2.72,
+        "r2_oos": 0.8388,
+        "directional_accuracy_pct": 49.2
       }
     }
   },
   "fundamentals_snapshot": {
-    "price_to_sales": 59.2276,
-    "revenue_growth": 0.411,
-    "gross_margin": 0.5615,
-    "operating_margin": -0.3043
+    "price_to_sales": 34.2151,
+    "revenue_growth": 0.421,
+    "gross_margin": 0.5558,
+    "operating_margin": -0.3046
   },
   "improvements_over_v1": [
     "ARIMA handles autocorrelation",
